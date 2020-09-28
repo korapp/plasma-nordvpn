@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg version="1.1" viewBox="0 0 16 16" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+    <defs>
+        <style type="text/css" id="current-color-scheme"></style>
+    </defs>
+    <path class="ColorScheme-Text" fill="currentColor" d="m7.9876 1.9609c-3.3218 0-6.024 2.7022-6.024 6.024 0 1.6292 0.65095 3.1082 1.7052 4.1936l7.72e-4 0.02303c0.013122 0.0064 0.025687 0.01208 0.038774 0.01843 1.0925 1.1037 2.6071 1.7887 4.2792 1.7887 3.3218 0 6.0238-2.702 6.0238-6.0238 0-3.3218-2.702-6.024-6.0238-6.024zm0 0.86029c2.8568 0 5.1635 2.3068 5.1635 5.1637 0 1.0673-0.32202 2.0576-0.87431 2.8797l-2.5352-3.8243-0.33725 0.33724 0.26987 1.0121-1.653-2.5976-1.1131 1.5181 0.33725 1.1806-0.87699-1.4843-2.7446 3.7406v7.57e-4c-0.50593-0.79857-0.79983-1.7455-0.79983-2.763 0-2.8568 2.3068-5.1637 5.1637-5.1637z"/>
+</svg>
