@@ -59,7 +59,7 @@ Item {
     }
 
     function actionTriggered(action) {
-        nordvpn.connect(strigifySelection(favoriteConnections.get(action)))
+        nordvpn.connect(buildConnectionString(favoriteConnections.get(action)))
     }
 
     function getFavorites() {
