@@ -31,6 +31,7 @@ Item {
     property bool isServiceRunning: false 
     property var functionalGroups: []
     property ListModel servers: ListModel {}
+    property string message: ""
 
     property var geoGroups: ['africa', 'asia', 'europe', 'america']
 
@@ -152,11 +153,12 @@ Item {
 
     function updateStatus(data) {
         const isRunning = !data["exit code"]
-        const stdout = Helper.cleanStdout(data.stdout)
-        textStatus = stdout
+        const stdout = Helper.splitOutputs(data.stdout)
+        message = stdout.message
+        textStatus = Helper.cleanStdout(stdout.rawValue)
 
         if (isRunning) { 
-            status = Helper.parseStdoutProperties(stdout)
+            status = Helper.parseStdoutProperties(textStatus)
             const connected = status.Status === "Connected";
             if (connected != isConnected) {
                 connectionStateChange(textStatus)

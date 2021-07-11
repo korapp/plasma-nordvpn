@@ -1,4 +1,5 @@
-function parseStdoutList(text) {
+function parseStdoutList(stdout) {
+    const text = splitOutputs(stdout).rawValue;
     return text && text.trim().split(/[-,\s+]/).filter(Boolean);
 }
 
@@ -12,6 +13,21 @@ function parseStdoutProperties(text) {
 // trim white spaces and progress 'animation' characters: \|/-
 function cleanStdout(text) {
     return text && text.trim().replace(/^[|\/\\-\s]+/, '');
+}
+
+// split raw NordVPN response to actual response and side message
+function splitOutputs(stdout) {
+    const outputs = stdout && stdout.split(/^-\s*/gm);
+    if (outputs.length > 1) {
+        return {
+            message: outputs[1],
+            rawValue: outputs[2]
+        }
+    }
+    return {
+        message: '',
+        rawValue: outputs[0]
+    }
 }
 
 function prettyName(text) {

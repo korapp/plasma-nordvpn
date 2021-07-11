@@ -216,5 +216,14 @@ Item {
                 }
             }
         }
+        
+        PlasmaComponents.Label {
+            id: statusBar
+            Layout.alignment: Qt.AlignCenter
+            enabled: false
+            visible: !!nordvpn.message
+            text: nordvpn.message
+            elide: Text.ElideRight
+        }
     }
 }
