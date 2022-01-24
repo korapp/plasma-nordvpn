@@ -1,61 +1,56 @@
 import QtQuick 2.0
-import QtQuick.Layouts 1.3
 
 import org.kde.plasma.core 2.0 as PlasmaCore
-import org.kde.plasma.components 2.0 as PlasmaComponents
+import org.kde.plasma.components 3.0 as PlasmaComponents3
 
-Item {
-    property bool useCustomIcon: Boolean(plasmoid.icon.includes('.'))
+import "../code/countries.js" as Countries
 
+MouseArea {
+    hoverEnabled: true
+    acceptedButtons: Qt.LeftButton | Qt.MiddleButton
+    readonly property int minSize: Math.min(width, height)
+    
     PlasmaCore.IconItem {
-        id: icon
-        source: plasmoid.icon
-        anchors.fill: parent
+        source: plasmoid.icon  
         enabled: nordvpn.isConnected
-        visible: !useCustomIcon
-    }
+        width: minSize
+        height: minSize
 
-    PlasmaCore.SvgItem{
-        property int size: Math.min(parent.height, parent.width)
         anchors.centerIn: parent
-        opacity: nordvpn.isConnected ? 1 : 0.6
-        svg: svgIcon
-        width: size
-        height: size
-        visible: useCustomIcon
-    }
 
-    PlasmaCore.Svg {
-        id: svgIcon
-        imagePath: Qt.resolvedUrl(plasmoid.icon)
-    }
+        PlasmaCore.IconItem {
+            visible: plasmoid.configuration.showCountryIndicator && nordvpn.isConnected
+            source: nordvpn.isConnected ? flags.getFlagImage(Countries.codes[nordvpn.status.Country]) : ''
+            enabled: true
+            roundToIconSize: false
 
-    PlasmaComponents.BusyIndicator {
-        running: true
-        visible: nordvpn.isBusy
-        anchors.fill: parent
-    }
+            anchors.right: parent.right
+            anchors.bottom: parent.bottom
 
-    MouseArea {
-        id: mouseArea
-        acceptedButtons: Qt.LeftButton | Qt.MiddleButton
-        anchors.fill: parent
-        hoverEnabled: true
-
-        onClicked: {
-            if (plasmoid.configuration.toggleConnectionOnMiddleButton && mouse.button === Qt.MiddleButton) {
-                quickConnectOrDisconnect()
-            } else {
-                toggleExpanded()
-            }
+            implicitWidth: parent.width / 2
+            implicitHeight: parent.height / 2
         }
 
-        function quickConnectOrDisconnect() {
-            nordvpn.isConnected ? nordvpn.disconnect() : nordvpn.connect()
+        PlasmaComponents3.BusyIndicator {
+            running: true
+            visible: nordvpn.isBusy
+            anchors.fill: parent
         }
+    }
 
-        function toggleExpanded() {
-            plasmoid.expanded = !plasmoid.expanded
+    onClicked: {
+        if (plasmoid.configuration.toggleConnectionOnMiddleButton && mouse.button === Qt.MiddleButton) {
+            toggleConnection()
+        } else {
+            toggleExpanded()
         }
+    }
+
+    function toggleConnection() {
+        nordvpn.isConnected ? nordvpn.disconnect() : nordvpn.connect()
+    }
+
+    function toggleExpanded() {
+        plasmoid.expanded = !plasmoid.expanded
     }
 }
