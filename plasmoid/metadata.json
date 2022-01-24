@@ -1,0 +1,29 @@
+{
+    "KPlugin": {
+        "Authors": [
+            {
+                "Email": "korapps@outlook.com",
+                "Name": "Krzysztof Korab"
+            }
+        ],
+        "Category": "System Information",
+        "Description": "NordVPN plasmoid",
+        "EnabledByDefault": true,
+        "Icon": "../plasma/plasmoids/com.github.korapp.nordvpn/contents/images/nordvpn.svg",
+        "Id": "com.github.korapp.nordvpn",
+        "License": "GPLv3",
+        "Name": "NordVPN",
+        "ServiceTypes": [
+            "Plasma/Applet"
+        ],
+        "Version": "0.1",
+        "Website": "https://github.com/korapp/plasma-nordvpn"
+    },
+    "X-KDE-ParentApp": "nordvpn",
+    "X-KDE-Version": "5.19",
+    "X-Plasma-API": "declarativeappletscript",
+    "X-Plasma-MainScript": "ui/main.qml",
+    "X-Plasma-NotificationArea": "true",
+    "X-Plasma-NotificationAreaCategory": "ApplicationStatus",
+    "X-Plasma-StandAloneApp": true
+}

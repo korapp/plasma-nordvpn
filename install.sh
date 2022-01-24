@@ -1,1 +1,0 @@
-kpackagetool5 --type Plasma/Applet --install plasmoid/ || kpackagetool5 --type Plasma/Applet --upgrade plasmoid/

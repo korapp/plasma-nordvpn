@@ -5,6 +5,6 @@ ConfigModel {
     ConfigCategory {
          name: i18n("General")
          icon: "preferences-desktop-plasma"
-         source: "configGeneral.qml"
+         source: "ConfigGeneral.qml"
     }
 }

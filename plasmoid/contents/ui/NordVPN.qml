@@ -1,194 +1,167 @@
-/*
-NordVPN Commands:
-    account        Shows account information
-    cities         Shows a list of cities where servers are available
-    connect, c     Connects you to VPN
-    countries      Shows a list of countries where servers are available
-    disconnect, d  Disconnects you from VPN
-    groups         Shows a list of available server groups
-    login          Logs you in
-    logout         Logs you out
-    rate           Rate your last connection quality (1-5)
-    register       Registers a new user account
-    set, s         Sets a configuration option
-    settings       Shows current settings
-    status         Shows connection status
-    whitelist      Adds or removes an option from a whitelist
-    help, h        Shows a list of commands or help for one command
-*/
-
-import QtQuick 2.2
+import QtQuick 2.0
 
 import org.kde.plasma.core 2.0 as PlasmaCore
 
-import "helper.js" as Helper
-
 Item {
-    property var status: ({})
-    property var textStatus: ""
-    property bool isConnected: false
-    property bool isBusy: false
-    property bool isServiceRunning: false 
-    property var functionalGroups: []
-    property ListModel servers: ListModel {}
-    property string message: ""
+    readonly property alias status: p.status
+    readonly property alias errorMessage: p.errorMessage
+    readonly property alias message: p.message
+    readonly property alias isConnected: p.isConnected
+    readonly property alias isServiceRunning: p.isServiceRunning
 
-    property var geoGroups: ['africa', 'asia', 'europe', 'america']
+    readonly property var connect: p.connect
+    readonly property var disconnect: p.disconnect
+    readonly property var getCities: p.getCities
+    readonly property var getCountries: p.getCountries
+    readonly property var getGroups: p.getGroups
+    readonly property var getSpecialGroups: p.getSpecialGroups
+    readonly property var getGeoGroups: p.getGeoGroups
+    readonly property bool isBusy: p.isConnecting || p.isOperationInProgress
 
-    signal connectionStateChange()
-
-    PlasmaCore.DataSource {
-        id: notification
-        engine: "executable"
-        connectedSources: []
-
-        onNewData: {
-             disconnectSource(sourceName)
-        }
-
-        function show(message) {
-            const cmd = `kdialog --icon="/var/lib/nordvpn/icon.svg" --title="NordVPN" --passivepopup "${message}" 5`
-            console.debug(cmd)
-            connectSource(cmd)
-        }
-    }
+    signal error(string message)
 
     PlasmaCore.DataSource {
         id: statusSource
         engine: "executable"
         connectedSources: ["nordvpn status"]
-        interval: 1000
-
-        onNewData: {
-            updateStatus(data)
-        }
+        interval: p.isOperationInProgress ? 0 : 1000
+        onNewData: p.updateStatus(data)
     }
 
-    PlasmaCore.DataSource {
+    Exec {
         id: execSource
-        engine: "executable"
-        connectedSources: []
+    }
+      
+    QtObject {
+        id: p
+        property var status: ({})
+        property string textStatus: ""
+        property string errorMessage: ""
+        property string message: ""
+        property bool isOperationInProgress: false
+        property bool isServiceRunning: false      
+        readonly property bool isConnected: status.Status === "Connected"
+        readonly property bool isConnecting: ["Reconnecting", "Connecting"].includes(status.Status) 
 
-        property var callbacks: ({})
+        function connect({ country, city, group } = {}) {
+            var connectionString = 'nordvpn connect '
+            if (arguments) {
+                connectionString += buildConnectionString({ country, city, group })
+            }
+            
+            return execBlockingCommand(connectionString)
+        }
 
-        onNewData: {
-            const stdout = data.stdout
-            if (callbacks[sourceName] !== undefined) {
-                if (!data["exit code"]) {
-                    callbacks[sourceName].resolve(stdout)
-                } else {
-                    callbacks[sourceName].reject(stdout)
+        function buildConnectionString({ country, city, group }) {
+            const g = group ? '--group ' + formatArgument(group) : ''
+            return `${formatArgument(country)} ${formatArgument(city) || ''} ${g}`
+        }
+
+        function disconnect() {
+            return execBlockingCommand("nordvpn disconnect")
+        }
+
+        function execBlockingCommand(command) {
+            isOperationInProgress = true
+            return execSource.exec(command)
+                //.then(() => message)
+                .catch(handleConnectionError)
+                .finally(() => isOperationInProgress = false)
+        }
+
+        function getCountries() {
+            return get("countries")
+        }
+
+        function getCities(country) {
+            return get(`cities ${formatArgument(country)}`)
+        }
+
+        function getGroups() {
+            return get("groups")
+        }
+
+        function get(resource) {
+            return execSource.exec(`nordvpn ${resource}`).then(processStdoutValues)
+        }        
+
+        // Format NordVPN names
+        function prettyName(name) {
+            return name && name.replace(/_/g, ' ');
+        }
+
+        // Format NordVPN id
+        function formatArgument(name) {
+            return name ? name.replace(/\s/g, '_') : ''
+        }
+        
+        // Log, display and rethrow error
+        function handleConnectionError(e) {
+            const ce = cleanStdout(e)
+            console.error(ce)
+            error(ce)
+            throw ce
+        }
+
+        // Trim white spaces and progress 'animation' characters: \|/-
+        function cleanStdout(text) {
+            return text && text.trim().replace(/^[|\/\\-\s]+/, '');
+        }
+
+        // Split raw NordVPN response to actual response and side message
+        function splitOutputs(stdout) {
+            const outputs = stdout && stdout.split(/^-\s*/gm);
+            if (outputs.length > 1) {
+                return {
+                    message: outputs[1],
+                    rawValue: outputs[2]
                 }
             }
-
-            exited(sourceName, stdout)
-            disconnectSource(sourceName)
+            return {
+                message: '',
+                rawValue: outputs[0]
+            }
         }
 
-        function exec(command) {
-            return new Promise((resolve, reject) => {
-                const cmd = 'nordvpn ' + command
-                callbacks[cmd] = { resolve, reject }
-                console.debug(cmd)
-                connectSource(cmd)
-            })
+        // Parse text properties into object
+        function parseStdoutProperties(text) {
+            if (!text) {
+                return {}
+            }
+            const lines = text.split('\n');
+            const entries = lines.map(l => l.split(':').map(e => e.trim()));
+            return objectfromEntries(entries);
         }
 
-        signal exited(string sourceName, string stdout)
-    }
+        function objectfromEntries(entries) {
+            return entries.reduce((obj, prop) => (obj[prop[0]] = prop[1], obj), {});
+        }
 
-    function _connect(server, group) {
-        isBusy = true
-        if (server) {
-            if (group) {
-                return execSource.exec("connect " + server + " --group " + group)
+        // Parse string values to list
+        function processStdoutValues(text) {
+            const rawValue = splitOutputs(text).rawValue;
+            const cleanValue = cleanStdout(rawValue);
+            return cleanValue.split(', ').map(prettyName);
+        }
+        
+        function updateStatus(data) {
+            const isRunning = !data["exit code"]
+            if (!isRunning) {
+                errorMessage = cleanStdout(data.stderr || data.stdout)
+                textStatus = ""
+                status = {}
             } else {
-                return execSource.exec("connect " + server)
+                const stdout = splitOutputs(data.stdout)
+                const newTextStatus = cleanStdout(stdout.rawValue)
+                message = stdout.message
+                errorMessage = ""
+                if (textStatus != newTextStatus) {                  
+                    textStatus = newTextStatus
+                    status = Qt.binding(() => parseStdoutProperties(textStatus))
+                }
             }
+            isServiceRunning = isRunning           
         }
-        return execSource.exec("connect")
     }
-
-    function connect(server, group) {
-        return _connect(server, group)
-            .then(message => {
-                isBusy = false
-                return message
-            })
-            .catch(handleConnectionError)
-    }
-
-    function disconnect() {
-        isBusy = true
-        return execSource.exec("disconnect")
-            .then(() => {
-                isBusy = false
-                return message
-            })
-            .catch(handleConnectionError)
-    }
-
-    function handleConnectionError(error) {
-        console.error(error)
-        notification.show(Helper.cleanStdout(error))
-        isBusy = false
-        throw error;
-    }
-
-    function getCountries() {
-        return execSource.exec("countries").then(Helper.parseStdoutList)
-    }
-
-    function getCities(country) {
-        return execSource.exec("cities " + country).then(Helper.parseStdoutList)
-    }
-
-    function getCitiesAsModel(country) {
-        return getCities(country).then(c => Helper.mapStringsToModelObjects(c, { type: 'Cities' }));
-    }
-
-    function getGroups() {
-        return execSource.exec("groups").then(Helper.parseStdoutList)
-    }
-
-    function updateStatus(data) {
-        const isRunning = !data["exit code"]
-        const stdout = Helper.splitOutputs(data.stdout)
-        message = stdout.message
-        textStatus = Helper.cleanStdout(stdout.rawValue)
-
-        if (isRunning) { 
-            status = Helper.parseStdoutProperties(textStatus)
-            const connected = status.Status === "Connected";
-            if (connected != isConnected) {
-                connectionStateChange(textStatus)
-            }
-            isConnected = connected
-            if (!isServiceRunning) {
-                loadLists();
-            }
-        }
-        isServiceRunning = isRunning
-    }
-
-    function nonGeoGroupFilter(group) {
-        return !geoGroups.some(f => group.id.toLowerCase().includes(f))
-    }
-
-    function loadLists() {
-        servers.clear()
-        Promise
-            .all([
-                getGroups(),
-                getCountries()
-            ])
-            .then(([g, c]) => {
-                const groups = Helper.mapStringsToModelObjects(g, { type: 'Special' });
-                const countries = Helper.mapStringsToModelObjects(c, { type: 'Countries' });
-                const nonGeoGroups = groups.filter(nonGeoGroupFilter);
-                servers.append(groups);
-                servers.append(countries); 
-                functionalGroups = nonGeoGroups;
-            })
-    }
+    
 }
