@@ -6,16 +6,17 @@
   <kcfgfile name=""/>
 
   <group name="General">
-    <entry name="icon" type="String">
-      <default>../images/nordvpn.svg</default>
-    </entry>
     <entry name="toggleConnectionOnMiddleButton" type="Bool">
+      <default>true</default>
+    </entry>
+    <entry name="showCountryIndicator" type="Bool">
+      <default>true</default>
+    </entry>
+    <entry name="showNotifications" type="Bool">
       <default>true</default>
     </entry>
   </group>
   <group name="Favorites">
-    <entry name="favoriteConnections" type="StringList">
-      <default></default>
-    </entry>
+    <entry name="favoriteConnections" type="String"></entry>
   </group>
 </kcfg>

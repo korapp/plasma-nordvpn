@@ -1,218 +1,158 @@
-import QtQuick 2.0
-import QtQuick.Layouts 1.3
-import QtQuick.Controls 2.2
-import QtQuick.Controls.Styles 1.4
+import QtQuick 2.7
+import QtQuick.Layouts 1.0
+import QtQuick.Controls 2.5
 
-import org.kde.plasma.core 2.0 as PlasmaCore
-import org.kde.plasma.components 2.0 as PlasmaComponents
+import org.kde.plasma.core 2.1 as PlasmaCore
+import org.kde.plasma.components 2.0 as PlasmaComponents // for Highlight, ContextMenu, MenuItem
+import org.kde.plasma.components 3.0 as PlasmaComponents3
 import org.kde.plasma.extras 2.0 as PlasmaExtras
 
-import "globals.js" as Globals
-import "helper.js" as Helper
+import "../code/globals.js" as Globals
 
-Item {
-    Layout.preferredHeight: 500 * units.devicePixelRatio
-    Layout.preferredWidth: 640 * units.devicePixelRatio
+PlasmaComponents3.Page {
+    property ListModel favorites: ListModel {}
+    property alias servers: nordVpnModel.servers
+    property alias allGroups: nordVpnModel.allGroups
+    property alias functionalGroups: nordVpnModel.functionalGroups
 
-    property var minorServerList: []
+    NordVPNModel {
+        id: nordVpnModel
+        source: nordvpn
+    }
     
-    ServerSelection {
-        id: serverSelection
-        onChange: {
-            favoriteCheckBox.checked = root.isSavedAsFavorite(serverSelection)
+    Connections {
+        target: plasmoid
+        onExpandedChanged: {
+            if (expanded) {
+                loadFavorites()
+                root.onFavoriteConnectionsChanged.connect(loadFavorites)
+                nordVpnModel.loadData()
+            } else {
+                nordVpnModel.clear()
+                root.onFavoriteConnectionsChanged.disconnect(loadFavorites)
+                favorites.clear()
+            }
         }
     }
 
-    function majorServerSelected(s) {
-        if (s.type === 'Countries') {
-            loadMinorServerList(s);
-        } else {
-            minorServerList.length = 0;
-            serverSelection.setSpecialServer();
-        }
-        serverSelection.setMajorServer(s);
+    function loadFavorites() {
+        favorites.clear()
+        favorites.append(root.favoriteConnections.map(nordVpnModel.createFavoriteModel))
     }
 
-    function loadMinorServerList(major) {
-        return nordvpn
-            .getCitiesAsModel(major.id)
-            .then(cities => {
-                minorServerList = cities
-            });
+    function addFavorite(connection) {
+        root.addFavorite(connection)
+        favorites.append(nordVpnModel.createFavoriteModel(connection))
     }
 
-    function favoriteSelected(item) {
-        loadMinorServerList(item.majorServer).then(() => {
-            serverSelection.setServers(item);
-        })
+    function deleteFavorite(index) {
+        favorites.remove(index)
+        root.deleteFavorite(index)
     }
 
-    function setComboBoxSelectedItem(combo, item) {
-        const index = item ? combo.model.findIndex(m => m && m.id === item.id) : -1
-        combo.currentIndex = index;
+    footer: PlasmaComponents3.Label {
+        id: statusBar
+        Layout.alignment: Qt.AlignCenter
+        enabled: false
+        visible: !!nordvpn.message
+        text: nordvpn.message
+        elide: Text.ElideRight
     }
 
-    Message {
-        id: errorView
-        visible: !nordvpn.isServiceRunning
-        message: nordvpn.textStatus
+    PlasmaExtras.PlaceholderMessage {
+        text: nordvpn.errorMessage
+        iconName: Globals.Icons.error
+        visible: !!text
+        width: parent.width
         anchors.centerIn: parent
     }
 
     ColumnLayout {
-        visible: nordvpn.isServiceRunning
         anchors.fill: parent
+        visible: nordvpn.isServiceRunning
 
-        RowLayout{
-            Layout.fillHeight: false
-            PlasmaComponents.TextField {
-                Layout.fillWidth: true
-                id: filter
-                placeholderText: i18n("Search...")
-                clearButtonShown: true
-                focus: true
-                onAccepted: () => nordvpn.connect(text)
-            }
-            StackLayout {
-                Layout.fillWidth: false
-                id: quickConnectButtons
-                currentIndex: nordvpn.isConnected ? 1 : 0
-                
-                PlasmaComponents.Button {
-                    id: connect
-                    text: i18n("Quick connect")
-                    iconSource: Globals.Icons.quickconnect
-                    onClicked: nordvpn.connect()
+        PlasmaComponents3.ScrollView {
+            Layout.fillWidth: true
+            implicitHeight: PlasmaCore.Units.iconSizes.large
+            visible: favorites.count > 0
+            ListView {
+                currentIndex: -1
+                orientation: ListView.Horizontal
+                boundsBehavior: Flickable.StopAtBounds
+                model: favorites
+                delegate: FavoriteItem {
+                    contextMenu: PlasmaComponents.ContextMenu {
+                        PlasmaComponents.MenuItem {
+                            text: kickerI18n("Remove from Favorites")
+                            icon: Globals.Icons.unpin
+                            onClicked: deleteFavorite(index)
+                        }
+                    }
                 }
-                
-                PlasmaComponents.Button {
-                    id: disconnect
-                    text: i18n("Disconnect")
-                    iconSource: Globals.Icons.disconnect
-                    onClicked: nordvpn.disconnect()
+                add: Transition {
+                    NumberAnimation { property: "opacity"; from: 0.0; to: 1.0; duration: PlasmaCore.Units.longDuration }
+                    NumberAnimation { property: "scale"; from: 0.0; to: 1.0; duration: PlasmaCore.Units.longDuration }
                 }
+                remove: Transition {
+                    NumberAnimation { property: "opacity"; from: 1.0; to: 0.0; duration: PlasmaCore.Units.longDuration }
+                    NumberAnimation { property: "scale"; from: 1.0; to: 0.0; duration: PlasmaCore.Units.longDuration }
+                }   
             }
         }
+        PlasmaComponents3.TextField {
+            Layout.fillWidth: true
+            id: filter
+            placeholderText: nmI18nc("text field placeholder text", "Search…") // Plasma 5.23 uses ellipsis character
+            clearButtonShown: true
+            focus: true
+            onAccepted: serverList.currentItem.defaultActionButtonAction.trigger()
+        }
 
-        RowLayout {
-            Layout.alignment: Qt.AlignTop
+        PlasmaComponents3.ScrollView {
+            Layout.fillHeight: true
+            Layout.fillWidth: true
             
-            ColumnLayout {
-                Layout.alignment: Qt.AlignTop
-                Layout.maximumWidth: 180
-                Layout.minimumWidth: 180
-                
-                PlasmaComponents.TabBar {
-                    id: tabBar
-                    currentTab: favoriteView.model.count ? favoriteView : groupsView
-                    
-                    PlasmaComponents.TabButton {
-                        text: i18n("Servers")
-                        tab: groupsView
+            ListView {
+                id: serverList
+                currentIndex: -1
+                spacing: PlasmaCore.Units.smallSpacing
+                boundsBehavior: Flickable.StopAtBounds
+                highlight: PlasmaComponents.Highlight {}  
+                highlightFollowsCurrentItem: true
+                highlightMoveDuration: 0
+                highlightResizeDuration: 0
+                delegate: ConnectionItem {
+                    width: serverList.width
+                }
+                clip: true
+                keyNavigationEnabled: true
+                section.property: "isConnected"
+                section.delegate: Separator {}
+                model: PlasmaCore.SortFilterModel {
+                    sourceModel: servers
+                    filterString: filter.text
+                    sortRole: "title"
+                    sortOrder: Qt.DescendingOrder
+                    filterCallback: function(row) {
+                        const item = sourceModel.get(row)
+                        return textMaches(item.title, filter.text) || textMaches(item.subtitle, filter.text)
                     }
 
-                    PlasmaComponents.TabButton {
-                        text: i18n("Favorites")
-                        tab: favoriteView
-                        visible: root.favoriteConnections.count
+                    function textMaches(text, search) {
+                        return !!text && text.toLowerCase().startsWith(search.toLowerCase())
                     }
                 }
-
-                PlasmaComponents.TabGroup {
-                    id: tabGroup
-                    Layout.fillHeight: true
-                    Layout.fillWidth: true
-                    
-                    currentTab: tabBar.currentTab
-                    
-                    ServersList {
-                        id: favoriteView
-                        model: PlasmaCore.SortFilterModel {
-                            sourceModel: root.favoriteConnections
-                            filterRole: "text"
-                            filterRegExp: filter.text
-                        }
-                        nameRole: "text"
-                        onSelected: favoriteSelected(item)
-                    }
-                
-                    ServersList {
-                        id: groupsView
-                        model: PlasmaCore.SortFilterModel {
-                            sourceModel: nordvpn.servers
-                            filterRole: "text"
-                            filterRegExp: filter.text
-                        }
-                        nameRole: "text"
-                        onSelected: majorServerSelected(item)
-                    }
+                add: Transition {
+                    NumberAnimation { property: "opacity"; from: 0.0; to: 1.0; duration: PlasmaCore.Units.longDuration }
                 }
-            }
-
-            ColumnLayout {
-                Layout.alignment: Qt.AlignTop
-
-                RowLayout {
-                    Layout.fillHeight: false
-                    PlasmaComponents.Label {
-                        text: serverSelection.text || i18n("Select server")
-                        Layout.fillWidth: true
-                    }
-                    PlasmaComponents.CheckBox {
-                        id: favoriteCheckBox
-                        style: CheckBoxStyle {
-                            indicator: PlasmaComponents.ToolButton {
-                                iconSource: Globals.Icons.favorite
-                                enabled: control.checked
-                            }
-                        }
-                        onClicked: addOrRemoveFromFavorites(serverSelection.getProperties())
-                    }
+                onCountChanged: {
+                    // select single result
+                    currentIndex = count === 1 ? 0 : -1
                 }
-
-                ColumnLayout{
-                    property bool enabled: (serverSelection.majorServer && serverSelection.majorServer.type === 'Countries')
-                    
-                    ComboBox {
-                        id: minorServer
-                        model: [null, ...minorServerList]
-                        textRole: "text"
-                        displayText: currentText || i18n('Any city')
-                        Layout.fillWidth: true
-                        onActivated: serverSelection.setMinorServer(model[index])
-                        enabled: parent.enabled
-                        Connections {
-                            target: serverSelection
-                            onChange: () => setComboBoxSelectedItem(minorServer, serverSelection.minorServer)
-                        }
+                onCurrentIndexChanged: {
+                    if (currentIndex >= 0) {
+                        serverList.forceActiveFocus()
                     }
-
-                    ComboBox {
-                        id: specialServer
-                        model: [null, ...nordvpn.functionalGroups]
-                        textRole: "text"
-                        displayText: currentText || i18n('Any server')
-                        Layout.fillWidth: true
-                        onActivated: serverSelection.setSpecialServer(model[index])
-                        enabled: parent.enabled
-                        Connections {
-                            target: serverSelection
-                            onChange: () => setComboBoxSelectedItem(specialServer, serverSelection.specialServer)
-                        }
-                    }
-                }
-
-                PlasmaComponents.Button {
-                    text: i18n("Connect")
-                    onClicked: nordvpn.connect(root.buildConnectionString(serverSelection))
-                    iconSource: Globals.Icons.connect
-                    enabled: serverSelection.majorServer
-                    Layout.alignment: Qt.AlignRight
-                }
-
-                PlasmaComponents.Label {
-                    text: nordvpn.textStatus
-                    Layout.fillWidth: true
                 }
             }
         }
