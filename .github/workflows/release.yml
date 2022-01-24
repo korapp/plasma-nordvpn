@@ -35,9 +35,9 @@ jobs:
           echo "RELEASE_VERSION=${{ steps.tag_version.outputs.new_version }}" >> $GITHUB_ENV
           echo "RELEASE_VERSION_TAG=${{ steps.tag_version.outputs.new_tag }}" >> $GITHUB_ENV
       
-      # Sets new X-KDE-PluginInfo-Version in metadata.desktop
+      # Sets new X-KDE-PluginInfo-Version in metadata.json
       - name: Update plasmoid version
-        run: sed -i "s/\(X-KDE-PluginInfo-Version=\)\(.*\)/\1$RELEASE_VERSION/g" plasmoid/metadata.desktop
+        run: echo "`jq '.KPlugin.Version="'$RELEASE_VERSION'"' plasmoid/metadata.json`" > plasmoid/metadata.json
       
       # Creates plasmoid package
       - name: Package
