@@ -1,53 +1,128 @@
 import QtQuick 2.4
 import QtQuick.Layouts 1.1
+
+import Qt.labs.platform 1.1
+
 import org.kde.plasma.plasmoid 2.0
 import org.kde.plasma.core 2.0 as PlasmaCore
 
-import "globals.js" as Globals
-import "helper.js" as Helper
+import "../code/globals.js" as Globals
+import "../code/countries.js" as Country
 
 Item {
     id: root
     Plasmoid.icon: plasmoid.configuration.icon
     Plasmoid.compactRepresentation: CompactRepresentation {}
     Plasmoid.fullRepresentation: FullRepresentation {}
-    Plasmoid.toolTipSubText: nordvpn.textStatus
+    Plasmoid.toolTipSubText: getTooltipText()
     Plasmoid.status: nordvpn.isServiceRunning ? PlasmaCore.Types.ActiveStatus : PlasmaCore.Types.PassiveStatus
 
-    Plasmoid.switchWidth: units.gridUnit * 14
-    Plasmoid.switchHeight: plasmoid.formFactor === PlasmaCore.Types.Vertical ? 1 : units.gridUnit * 10
+    Plasmoid.switchWidth: PlasmaCore.Units.gridUnit * 14
+    Plasmoid.switchHeight: PlasmaCore.Units.gridUnit * 14
 
-    property ListModel favoriteConnections: ListModel {}
-    property NordVPN nordvpn: NordVPN {}
+    readonly property var actionConnect: ["quick_connect", nmI18n("Connect"), Globals.Icons.connect]
+    readonly property var actionDisconnect: ["disconnect", nmI18n("Disconnect"), Globals.Icons.disconnect]
+
+    property var favoriteConnections: []
+
+    NordVPN {
+        id: nordvpn
+        onError: {
+            if (plasmoid.configuration.showNotifications) {
+                createNotification(message)
+            }
+        }
+    }
 
     Component.onCompleted: {
-        updateFavoritesModel();
+        loadFavorites()
     }
 
     Plasmoid.onContextualActionsAboutToShow: {
         plasmoid.clearActions()
 
         if (nordvpn.isConnected) {
-            plasmoid.setAction(
-                "disconnect",
-                i18n("Disconnect"),
-                Globals.Icons.disconnect
-            )
+            plasmoid.setAction(...actionDisconnect)
         } else {
-            plasmoid.setAction(
-                "quick_connect",
-                i18n("Quick connect"),
-                Globals.Icons.connect
-            )
+            plasmoid.setAction(...actionConnect)
         }
 
-        Helper.forEach(favoriteConnections, (f, i) => {
-            plasmoid.setAction(
-                i,
-                f.text,
-                Globals.Icons.favorite
-            )
-        })
+        plasmoid.setActionSeparator("")
+
+        favoriteConnections.forEach((f, i) => plasmoid.setAction(
+            i,
+            Object.values(f).filter(Boolean).join(" > "),
+            (f.group && Globals.Icons[f.group]) || (f.country && flags.getLegacyFlagUrl(f.country)) || Globals.Icons.globe
+        ))
+    }
+
+    PlasmaCore.Svg {
+        id: flags
+        imagePath: Qt.resolvedUrl("../images/flags.svgz")
+        multipleImages: true
+
+        readonly property string flagPrefix: "flag:"
+        readonly property string legacyIconsDir: skipUrlSchema(StandardPaths.locate(
+            StandardPaths.GenericDataLocation,
+            "kf5/locale/countries/",
+            StandardPaths.LocateDirectory
+        ))
+
+        function isFlagString(iconString) {
+            return iconString && iconString.startsWith(flagPrefix)
+        }
+
+        function getFlagImage(flagName) {
+            const countryCode = isFlagString(flagName) ? flagName.slice(flagPrefix.length) : flagName
+            return image(Qt.size(48,48), countryCode)
+        }
+
+        function getFlagName(countryName) {
+            return flagPrefix + Country.codes[countryName]
+        }
+
+        function getLegacyFlagUrl(countryName) {
+            return legacyIconsDir + Country.codes[countryName].toLowerCase() + "/flag.png"
+        }
+    }
+
+    function skipUrlSchema(urlString) {
+        return /(?:.*:\/\/)?(.*)/.exec(urlString)[1]
+    }
+
+    function getFavoriteIcon(f) {
+        if (f.group) {
+            return Globals.Icons[f.group]
+        } else if (f.country) {
+            return flags.getLegacyFlagUrl(f.country)
+        }
+        return Globals.Icons.globe
+    }
+
+    Exec {
+        id: cmd
+    }
+
+    PlasmaCore.DataSource {
+        id: notificationSource
+        engine: "notifications"
+        connectedSources: "org.freedesktop.Notifications"
+    }
+
+    function createNotification(text, { appName = plasmoid.title, appIcon = plasmoid.icon } = {}) {        
+        const service = notificationSource.serviceForSource("notification");
+        const operation = service.operationDescription("createNotification");
+
+        operation.appName = plasmoid.title
+        operation.appIcon = plasmoid.icon
+        operation.body = text
+        operation.expireTimeout = 5000
+
+        service.startOperationCall(operation);
+    }
+
+    function getTooltipText() {
+        return nordvpn.isConnected ? `${nordvpn.status.Country}, ${nordvpn.status.City}` : nordvpn.status.Status || ''
     }
 
     function action_disconnect() {
@@ -59,55 +134,48 @@ Item {
     }
 
     function actionTriggered(action) {
-        nordvpn.connect(buildConnectionString(favoriteConnections.get(action)))
+        nordvpn.connect(favoriteConnections.get(action))
     }
 
-    function getFavorites() {
-        return plasmoid.configuration.favoriteConnections.map(JSON.parse) || [];
-    }
-
-    function addOrRemoveFromFavorites(connection) {
-        const selectionString = strigifySelection(connection)
-        console.debug("addOrRemoveFromFavorites: ", selectionString)
-        const connections = plasmoid.configuration.favoriteConnections
-        const filteredConnections = connections.filter(c => c !== selectionString)
-        if (filteredConnections.length === connections.length) {
-            connections.push(selectionString)
-            plasmoid.configuration.favoriteConnections = connections
-        } else {
-            plasmoid.configuration.favoriteConnections = filteredConnections
+    function readFavorites() {
+        if (!plasmoid.configuration.favoriteConnections) {
+            return []
         }
-        console.debug("favorites: ", plasmoid.configuration.favoriteConnections)
-        updateFavoritesModel();
+        return JSON.parse(plasmoid.configuration.favoriteConnections)
     }
 
-    function isSavedAsFavorite(item) {
-        for (var i = 0; i < favoriteConnections.count; i++) {
-            if (favoriteConnections.get(i).text === item.text) {
-                return true;
-            }
-        }
-        return false;
+    function saveFavorites(favorites) {
+        plasmoid.configuration.favoriteConnections = stringify(favorites)
     }
 
-    function updateFavoritesModel() {
-        favoriteConnections.clear();
-        favoriteConnections.append(getFavorites());
+    function addFavorite(connection) {
+        favoriteConnections.push(connection)
+        saveFavorites(favoriteConnections)
     }
 
-    function buildConnectionString({ majorServer, minorServer, specialServer }) {
-        return [
-            majorServer && majorServer.id,
-            minorServer && minorServer.id,
-            specialServer &&  '--group ' + specialServer.id
-        ].filter(Boolean).join(' ')
+    function deleteFavorite(index) {
+        favoriteConnections.splice(index, 1)        
+        saveFavorites(favoriteConnections)
     }
 
-    function strigifySelection(selection) {
-        return JSON.stringify(selection, (key, value) => {
-            if (value) { 
-                return value
-            }
-        })
+    function loadFavorites() {
+        favoriteConnections = readFavorites()
     }
+
+    function stringify(object) {
+        return JSON.stringify(object, (key, value) => value || undefined)
+    }
+
+    function nmI18n(...args) {
+        return i18nd("plasma_applet_org.kde.plasma.networkmanagement", ...args)
+    }
+
+    function nmI18nc(...args) {
+        return i18ndc("plasma_applet_org.kde.plasma.networkmanagement", ...args)
+    }
+
+    function kickerI18n(...args) {
+        return i18nd("plasma_applet_org.kde.plasma.kicker", ...args)
+    }
+
 }
