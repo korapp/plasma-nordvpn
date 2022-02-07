@@ -134,7 +134,7 @@ Item {
     }
 
     function actionTriggered(action) {
-        nordvpn.connect(favoriteConnections.get(action))
+        nordvpn.connect(favoriteConnections[action])
     }
 
     function readFavorites() {
