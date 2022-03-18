@@ -53,6 +53,8 @@ PlasmaComponents3.Page {
     footer: PlasmaComponents3.Label {
         id: statusBar
         Layout.alignment: Qt.AlignCenter
+        Layout.preferredWidth: parent.width
+        maximumLineCount: 1
         enabled: false
         visible: !!nordvpn.message
         text: nordvpn.message
