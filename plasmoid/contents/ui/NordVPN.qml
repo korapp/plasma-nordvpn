@@ -64,7 +64,6 @@ Item {
         function execBlockingCommand(command) {
             isOperationInProgress = true
             return execSource.exec(command)
-                //.then(() => message)
                 .catch(handleConnectionError)
                 .finally(() => isOperationInProgress = false)
         }
@@ -82,7 +81,10 @@ Item {
         }
 
         function get(resource) {
-            return execSource.exec(`nordvpn ${resource}`).then(processStdoutValues)
+            return execSource
+                .exec(`nordvpn ${resource}`)
+                .then(parseStdout)
+                .then(s => parseStdoutValues(s.value))
         }        
 
         // Format NordVPN names
@@ -97,30 +99,21 @@ Item {
         
         // Log, display and rethrow error
         function handleConnectionError(e) {
-            const ce = cleanStdout(e)
+            const ce = parseStdout(e).value
             console.error(ce)
             error(ce)
             throw ce
         }
 
-        // Trim white spaces and progress 'animation' characters: \|/-
-        function cleanStdout(text) {
-            return text && text.trim().replace(/^[|\/\\-\s]+/, '');
-        }
-
         // Split raw NordVPN response to actual response and side message
-        function splitOutputs(stdout) {
-            const outputs = stdout && stdout.split(/^-\s*/gm);
-            if (outputs.length > 1) {
-                return {
-                    message: outputs[1],
-                    rawValue: outputs[2]
-                }
-            }
-            return {
-                message: '',
-                rawValue: outputs[0]
-            }
+        function parseStdout(stdout) {
+            const [value, message = ''] = stdout && stdout
+                .split(/\r[-\\|/\s]+\r/)
+                .map(s => s.trim())
+                .filter(Boolean)
+                .reverse()
+
+            return { message, value }
         }
 
         // Parse text properties into object
@@ -129,30 +122,29 @@ Item {
                 return {}
             }
             const lines = text.split('\n');
-            const entries = lines.map(l => l.split(':').map(e => e.trim()));
-            return objectfromEntries(entries);
+            const entries = lines.map(l => l.split(': '));
+            return objectFromEntries(entries);
         }
 
-        function objectfromEntries(entries) {
+        function objectFromEntries(entries) {
             return entries.reduce((obj, prop) => (obj[prop[0]] = prop[1], obj), {});
         }
 
         // Parse string values to list
-        function processStdoutValues(text) {
-            const rawValue = splitOutputs(text).rawValue;
-            const cleanValue = cleanStdout(rawValue);
-            return cleanValue.split(', ').map(prettyName);
+        function parseStdoutValues(text) {
+            return text.split(', ').map(prettyName);
         }
         
         function updateStatus(data) {
             const isRunning = !data["exit code"]
             if (!isRunning) {
-                errorMessage = cleanStdout(data.stderr || data.stdout)
+                errorMessage = parseStdout(data.stderr || data.stdout).value
+                message = ""
                 textStatus = ""
                 status = {}
             } else {
-                const stdout = splitOutputs(data.stdout)
-                const newTextStatus = cleanStdout(stdout.rawValue)
+                const stdout = parseStdout(data.stdout)
+                const newTextStatus = stdout.value
                 message = stdout.message
                 errorMessage = ""
                 if (textStatus != newTextStatus) {                  
