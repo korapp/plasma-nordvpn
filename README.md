@@ -14,3 +14,10 @@ Simple GUI for the official [NordVPN linux client](https://nordvpn.com/download/
 
 * [NordVPN linux client](https://nordvpn.com/download/linux/)
 * Qt >= 5.14, KDE Frameworks >= 5.73, KDE Plasma >= 5.19 (Kubuntu 20.10 and newer)
+
+## Support
+
+Say thank you with coffee ☕ if you'd like.
+
+[![liberapay](https://liberapay.com/assets/widgets/donate.svg)](https://liberapay.com/korapp/donate)
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/korapp)
