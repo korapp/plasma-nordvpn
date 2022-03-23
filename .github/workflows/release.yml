@@ -1,48 +1,52 @@
-# This is a basic workflow to help you get started with Actions
-
 name: "Release"
-
-# Controls when the workflow will run
 on: 
   push:
     branches:
-      - master
+      - ci-release
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
-  release:
-    name: "Release"
-    # The type of runner that the job will run on
+  bump:
+    name: "Bump"
     runs-on: ubuntu-latest
-
-    # Steps represent a sequence of tasks that will be executed as part of the job
+    outputs:
+      new_version: ${{ steps.tag_version.outputs.new_version }}
+      new_tag: ${{ steps.tag_version.outputs.new_tag }}
+      changelog: ${{ steps.tag_version.outputs.changelog }}
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
+      - name: Checkout
+        uses: actions/checkout@v2
 
       - name: Bump version and push tag
         id: tag_version
         uses: mathieudutour/github-tag-action@v5.5
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-      
+          
+
+  release:
+    name: "Release"
+    needs: bump
+    runs-on: ubuntu-latest
+    if: ${{ needs.bump.outputs.new_tag != null }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
       - name: Set env
         run: |
+          echo "ASSET_DIR=plasmoid" >> $GITHUB_ENV
           echo "ASSET_BASE_NAME=${{ github.event.repository.name }}" >> $GITHUB_ENV
-          echo "RELEASE_VERSION=${{ steps.tag_version.outputs.new_version }}" >> $GITHUB_ENV
-          echo "RELEASE_VERSION_TAG=${{ steps.tag_version.outputs.new_tag }}" >> $GITHUB_ENV
-      
+          echo "RELEASE_VERSION=${{ needs.bump.outputs.new_version }}" >> $GITHUB_ENV
+          echo "RELEASE_VERSION_TAG=${{ needs.bump.outputs.new_tag }}" >> $GITHUB_ENV
+
       # Sets new X-KDE-PluginInfo-Version in metadata.json
       - name: Update plasmoid version
-        run: echo "`jq '.KPlugin.Version="'$RELEASE_VERSION'"' plasmoid/metadata.json`" > plasmoid/metadata.json
+        run: echo "`jq '.KPlugin.Version="'$RELEASE_VERSION'"' $ASSET_DIR/metadata.json`" > $ASSET_DIR/metadata.json
       
       # Creates plasmoid package
       - name: Package
         run: |
-          cd plasmoid
+          cd $ASSET_DIR
           zip -r ../$ASSET_BASE_NAME-$RELEASE_VERSION.plasmoid *
           cd ..
 
@@ -50,5 +54,5 @@ jobs:
         with:
           artifacts: "*.plasmoid"
           tag: ${{ env.RELEASE_VERSION_TAG }}
-          body: ${{ steps.tag_version.outputs.changelog }}
+          body: ${{ needs.bump.outputs.changelog }}
           token: ${{ secrets.GITHUB_TOKEN }}
