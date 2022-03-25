@@ -54,7 +54,7 @@ Item {
 
         function buildConnectionString({ country, city, group }) {
             const g = group ? '--group ' + formatArgument(group) : ''
-            return `${formatArgument(country)} ${formatArgument(city) || ''} ${g}`
+            return `${g} ${formatArgument(country)} ${formatArgument(city)}`
         }
 
         function disconnect() {
