@@ -11,7 +11,6 @@ import "../code/countries.js" as Country
 
 Item {
     id: root
-    Plasmoid.icon: plasmoid.configuration.icon
     Plasmoid.compactRepresentation: CompactRepresentation {}
     Plasmoid.fullRepresentation: FullRepresentation {}
     Plasmoid.toolTipSubText: getTooltipText()
@@ -113,8 +112,8 @@ Item {
         const service = notificationSource.serviceForSource("notification");
         const operation = service.operationDescription("createNotification");
 
-        operation.appName = plasmoid.title
-        operation.appIcon = plasmoid.icon
+        operation.appName = appName
+        operation.appIcon = appIcon
         operation.body = text
         operation.expireTimeout = 5000
 
