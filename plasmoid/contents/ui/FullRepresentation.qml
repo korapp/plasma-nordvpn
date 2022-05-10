@@ -106,8 +106,10 @@ PlasmaComponents3.Page {
             id: filter
             placeholderText: nmI18nc("text field placeholder text", "Search…") // Plasma 5.23 uses ellipsis character
             clearButtonShown: true
-            focus: true
+            focus: plasmoid.expanded
             onAccepted: serverList.currentItem.defaultActionButtonAction.trigger()
+            Keys.onUpPressed: serverList.decrementCurrentIndex()
+            Keys.onDownPressed: serverList.incrementCurrentIndex()
         }
 
         PlasmaComponents3.ScrollView {
@@ -150,11 +152,6 @@ PlasmaComponents3.Page {
                 onCountChanged: {
                     // select single result
                     currentIndex = count === 1 ? 0 : -1
-                }
-                onCurrentIndexChanged: {
-                    if (currentIndex >= 0) {
-                        serverList.forceActiveFocus()
-                    }
                 }
             }
         }

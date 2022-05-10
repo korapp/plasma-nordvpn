@@ -15,6 +15,7 @@ Item {
     Plasmoid.fullRepresentation: FullRepresentation {}
     Plasmoid.toolTipSubText: getTooltipText()
     Plasmoid.status: nordvpn.isServiceRunning ? PlasmaCore.Types.ActiveStatus : PlasmaCore.Types.PassiveStatus
+    Plasmoid.icon: Qt.resolvedUrl("../images/nordvpn.svgz")
 
     Plasmoid.switchWidth: PlasmaCore.Units.gridUnit * 14
     Plasmoid.switchHeight: PlasmaCore.Units.gridUnit * 14
@@ -71,9 +72,9 @@ Item {
             return iconString && iconString.startsWith(flagPrefix)
         }
 
-        function getFlagImage(flagName) {
+        function getFlagImage(flagName, size = Qt.size(48,48)) {
             const countryCode = isFlagString(flagName) ? flagName.slice(flagPrefix.length) : flagName
-            return image(Qt.size(48,48), countryCode)
+            return image(size, countryCode)
         }
 
         function getFlagName(countryName) {

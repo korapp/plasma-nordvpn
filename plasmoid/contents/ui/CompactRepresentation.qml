@@ -10,9 +10,12 @@ MouseArea {
     acceptedButtons: Qt.LeftButton | Qt.MiddleButton
     readonly property int minSize: Math.min(width, height)
     
-    PlasmaCore.IconItem {
-        source: plasmoid.icon  
+    PlasmaCore.SvgItem {
+        svg: PlasmaCore.Svg {
+            imagePath: plasmoid.icon
+        }  
         enabled: nordvpn.isConnected
+        opacity: enabled ? 1 : 0.6
         width: minSize
         height: minSize
 
@@ -20,7 +23,7 @@ MouseArea {
 
         PlasmaCore.IconItem {
             visible: plasmoid.configuration.showCountryIndicator && nordvpn.isConnected
-            source: nordvpn.isConnected ? flags.getFlagImage(Countries.codes[nordvpn.status.Country]) : ''
+            source: visible ? flags.getFlagImage(Countries.codes[nordvpn.status.Country], Qt.size(width, height)) : ''
             enabled: true
             roundToIconSize: false
 

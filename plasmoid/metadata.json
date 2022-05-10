@@ -9,7 +9,7 @@
         "Category": "System Information",
         "Description": "NordVPN plasmoid",
         "EnabledByDefault": true,
-        "Icon": "../plasma/plasmoids/com.github.korapp.nordvpn/contents/images/nordvpn.svgz",
+        "Icon": "nordvpn",
         "Id": "com.github.korapp.nordvpn",
         "License": "GPLv3",
         "Name": "NordVPN",
