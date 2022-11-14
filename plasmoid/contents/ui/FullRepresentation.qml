@@ -10,6 +10,8 @@ import org.kde.plasma.extras 2.0 as PlasmaExtras
 import "../code/globals.js" as Globals
 
 PlasmaComponents3.Page {
+    readonly property var appletInterface: plasmoid.self
+    
     property ListModel favorites: ListModel {}
     property alias servers: nordVpnModel.servers
     property alias allGroups: nordVpnModel.allGroups
