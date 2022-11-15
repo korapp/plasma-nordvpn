@@ -76,7 +76,7 @@ PlasmaComponents3.Page {
         PlasmaComponents3.ScrollView {
             Layout.fillWidth: true
             ScrollBar.vertical.policy: ScrollBar.AlwaysOff
-            implicitHeight: PlasmaCore.Units.iconSizes.large
+            contentHeight: contentItem.contentItem.childrenRect.height
             visible: favorites.count > 0
             ListView {
                 currentIndex: -1
