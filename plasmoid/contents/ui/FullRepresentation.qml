@@ -16,24 +16,22 @@ PlasmaComponents3.Page {
     property alias servers: nordVpnModel.servers
     property alias allGroups: nordVpnModel.allGroups
     property alias functionalGroups: nordVpnModel.functionalGroups
+    readonly property bool loadModel: plasmoid.expanded && nordvpn.isServiceRunning
 
     NordVPNModel {
         id: nordVpnModel
         source: nordvpn
     }
     
-    Connections {
-        target: plasmoid
-        onExpandedChanged: {
-            if (expanded) {
-                loadFavorites()
-                root.onFavoriteConnectionsChanged.connect(loadFavorites)
-                nordVpnModel.loadData()
-            } else {
-                nordVpnModel.clear()
-                root.onFavoriteConnectionsChanged.disconnect(loadFavorites)
-                favorites.clear()
-            }
+    onLoadModelChanged: {
+        if (loadModel) {
+            loadFavorites()
+            root.onFavoriteConnectionsChanged.connect(loadFavorites)
+            nordVpnModel.loadData()
+        } else {
+            nordVpnModel.clear()
+            root.onFavoriteConnectionsChanged.disconnect(loadFavorites)
+            favorites.clear()
         }
     }
 
