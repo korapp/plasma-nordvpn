@@ -24,7 +24,11 @@ Item {
         id: statusSource
         engine: "executable"
         connectedSources: ["nordvpn status"]
-        interval: p.isOperationInProgress ? 0 : 1000
+        interval: {
+            if (p.isOperationInProgress) return 0
+            if (p.isServiceRunning) return 1000
+            return Math.random() * 5000 + 5000 | 0
+        }
         onNewData: p.updateStatus(data)
     }
 
