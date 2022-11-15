@@ -75,6 +75,7 @@ PlasmaComponents3.Page {
 
         PlasmaComponents3.ScrollView {
             Layout.fillWidth: true
+            ScrollBar.vertical.policy: ScrollBar.AlwaysOff
             implicitHeight: PlasmaCore.Units.iconSizes.large
             visible: favorites.count > 0
             ListView {
@@ -115,6 +116,7 @@ PlasmaComponents3.Page {
         PlasmaComponents3.ScrollView {
             Layout.fillHeight: true
             Layout.fillWidth: true
+            ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
             
             ListView {
                 id: serverList
