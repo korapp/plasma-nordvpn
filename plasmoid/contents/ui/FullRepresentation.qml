@@ -10,28 +10,28 @@ import org.kde.plasma.extras 2.0 as PlasmaExtras
 import "../code/globals.js" as Globals
 
 PlasmaComponents3.Page {
+    readonly property var appletInterface: plasmoid.self
+    
     property ListModel favorites: ListModel {}
     property alias servers: nordVpnModel.servers
     property alias allGroups: nordVpnModel.allGroups
     property alias functionalGroups: nordVpnModel.functionalGroups
+    readonly property bool loadModel: plasmoid.expanded && nordvpn.isServiceRunning
 
     NordVPNModel {
         id: nordVpnModel
         source: nordvpn
     }
     
-    Connections {
-        target: plasmoid
-        onExpandedChanged: {
-            if (expanded) {
-                loadFavorites()
-                root.onFavoriteConnectionsChanged.connect(loadFavorites)
-                nordVpnModel.loadData()
-            } else {
-                nordVpnModel.clear()
-                root.onFavoriteConnectionsChanged.disconnect(loadFavorites)
-                favorites.clear()
-            }
+    onLoadModelChanged: {
+        if (loadModel) {
+            loadFavorites()
+            root.onFavoriteConnectionsChanged.connect(loadFavorites)
+            nordVpnModel.loadData()
+        } else {
+            nordVpnModel.clear()
+            root.onFavoriteConnectionsChanged.disconnect(loadFavorites)
+            favorites.clear()
         }
     }
 
@@ -75,7 +75,8 @@ PlasmaComponents3.Page {
 
         PlasmaComponents3.ScrollView {
             Layout.fillWidth: true
-            implicitHeight: PlasmaCore.Units.iconSizes.large
+            ScrollBar.vertical.policy: ScrollBar.AlwaysOff
+            contentHeight: contentItem.contentItem.childrenRect.height
             visible: favorites.count > 0
             ListView {
                 currentIndex: -1
@@ -115,6 +116,7 @@ PlasmaComponents3.Page {
         PlasmaComponents3.ScrollView {
             Layout.fillHeight: true
             Layout.fillWidth: true
+            ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
             
             ListView {
                 id: serverList

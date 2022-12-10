@@ -101,14 +101,4 @@ QtObject {
     function updateCurrentConnectionItem() {
         servers.set(0, getCurrentConnectionItem())
     }
-
-    Component.onCompleted: {
-        source.onIsServiceRunningChanged.connect(() => {
-            if (source.isServiceRunning) {
-                loadData()
-            } else {
-                clear()
-            }
-        })
-    }
 }

@@ -23,9 +23,15 @@ PlasmaCore.DataSource {
     }
 
     function exec(cmd) {
-        return new Promise((resolve, reject) => {
-            callbacks[cmd] = { resolve, reject }
-            connectSource(cmd)
+        if (callbacks[cmd]) {
+            return callbacks[cmd].promise
+        }
+        let resolve, reject, promise = new Promise((_resolve, _reject) => {
+            resolve = _resolve
+            reject = _reject
         })
+        callbacks[cmd] = { resolve, reject, promise }
+        connectSource(cmd)
+        return promise
     }
 }
