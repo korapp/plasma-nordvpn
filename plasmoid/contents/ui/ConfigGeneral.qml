@@ -8,6 +8,7 @@ Kirigami.FormLayout {
 
     property alias cfg_toggleConnectionOnMiddleButton: toggleConnectionOnMiddleButton.checked
     property alias cfg_showCountryIndicator: showCountryIndicator.checked
+    property alias cfg_hideWhenDisconnected: hideWhenDisconnected.checked
     property alias cfg_showNotifications: showNotifications.checked
 
     CheckBox {
@@ -18,6 +19,11 @@ Kirigami.FormLayout {
     CheckBox {
         id: showCountryIndicator
         Kirigami.FormData.label: i18n("Show country indicator")
+    }
+
+    CheckBox {
+        id: hideWhenDisconnected
+        Kirigami.FormData.label: i18n("Hide when VPN is disconnected")
     }
 
     CheckBox {

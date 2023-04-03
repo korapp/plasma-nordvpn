@@ -14,7 +14,9 @@ Item {
     Plasmoid.compactRepresentation: CompactRepresentation {}
     Plasmoid.fullRepresentation: FullRepresentation {}
     Plasmoid.toolTipSubText: getTooltipText()
-    Plasmoid.status: nordvpn.isServiceRunning ? PlasmaCore.Types.ActiveStatus : PlasmaCore.Types.PassiveStatus
+    Plasmoid.status: nordvpn.isServiceRunning && (nordvpn.isConnected || !plasmoid.configuration.hideWhenDisconnected)
+        ? PlasmaCore.Types.ActiveStatus
+        : PlasmaCore.Types.PassiveStatus
     Plasmoid.icon: Qt.resolvedUrl("../images/nordvpn.svgz")
 
     Plasmoid.switchWidth: PlasmaCore.Units.gridUnit * 14
