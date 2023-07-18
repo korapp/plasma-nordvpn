@@ -1,6 +1,6 @@
 import QtQuick 2.0
 
-import org.kde.plasma.core 2.0 as PlasmaCore
+import org.kde.plasma.plasma5support 2.0 as P5Support
 
 Item {
     readonly property alias status: p.status
@@ -20,7 +20,7 @@ Item {
 
     signal error(string message)
 
-    PlasmaCore.DataSource {
+    P5Support.DataSource {
         id: statusSource
         engine: "executable"
         connectedSources: ["nordvpn status"]
@@ -29,7 +29,7 @@ Item {
             if (p.isServiceRunning) return 1000
             return Math.random() * 5000 + 5000 | 0
         }
-        onNewData: p.updateStatus(data)
+        onNewData: (_, data) => p.updateStatus(data)
     }
 
     Exec {

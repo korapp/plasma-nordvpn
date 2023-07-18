@@ -69,7 +69,7 @@ QtObject {
 
     function createFavoriteModel(f) {
         return createModel({
-            icon: getFavoriteIcon(f),
+            icon: getFavoriteIcon(f, true),
             indicator: f.group && f.country ? flags.getFlagName(f.country) : '',
             title: f.group || f.city || f.country || i18n("Auto"),
             subtitle: f.group ? f.city || f.country : f.city ? f.country : '',

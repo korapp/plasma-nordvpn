@@ -2,9 +2,10 @@ import QtQuick 2.0
 import QtQuick.Layouts 1.0
 import QtQuick.Controls 2.3
 
-import org.kde.plasma.core 2.0 as PlasmaCore
-import org.kde.plasma.components 2.0 as PlasmaComponents
+import org.kde.plasma.components 3.0 as PlasmaComponents
 import org.kde.plasma.extras 2.0 as PlasmaExtras
+
+import org.kde.kirigami 2.3 as Kirigami
 
 import "../code/globals.js" as Globals
 
@@ -18,37 +19,40 @@ PlasmaExtras.ExpandableListItem {
     iconEmblem: model.indicator
     visible: model.visible
     defaultActionButtonAction: model.isConnected ? actionDisconnect : actionConnect
-    contextMenu: model.pinable ? itemContextMenu : null
-    // plasma-frameworks 5.94 - 5.102 loads customExpandedViewContent immediately
-    // start with an empty component to force the expand button to appear and load the right content when expanded
-    customExpandedViewContent: Component { QtObject {} }
-    onItemExpanded: customExpandedViewContent = model.isConnected ? currentConnectionDetails : detailsComponent
-
-    PlasmaComponents.ContextMenu {
-        id: itemContextMenu
-        function prepare() {} // Implementation required by PlasmaExtras.ExpandableListItem
+    customExpandedViewContent: model.isConnected ? currentConnectionDetails : detailsComponent
+    
+    PlasmaComponents.Menu {
+        id: contextMenu
         PlasmaComponents.MenuItem {
             text: kickerI18n("Add to Favorites")
-            icon: Globals.Icons.pin
+            enabled: model.pinable
+            icon.name: Globals.Icons.pin
             onClicked: addFavorite(getConnection())
         }
+    }
+
+    MouseArea {
+        width: parent.width
+        height: parent.height
+        acceptedButtons: Qt.RightButton
+        onPressed: mouse => contextMenu?.popup(mouse.x, mouse.y)
     }
 
     Component {
         id: detailsComponent
         RowLayout {
-            PlasmaCore.IconItem {
+            Kirigami.Icon {
                 source: Globals.Icons.location
                 enabled: false
                 visible: citySelector.visible
             }
-            ComboBox {
+            PlasmaComponents.ComboBox {
                 id: citySelector
                 Layout.fillWidth: true
                 enabled: !!model && model.length > 1
-                visible: !!connectionItemModel.connectionObject.country
+                visible: !!connectionItemModel.connectionObject?.country
                 onActivated: connectionObject.city = currentValue
-                Component.onCompleted: {
+                onVisibleChanged: {
                     if (!visible) return
                     nordvpn.getCities(connectionItemModel.connectionObject.country)
                         .then(c => {
@@ -57,15 +61,15 @@ PlasmaExtras.ExpandableListItem {
                         });
                 }
             }
-            PlasmaCore.IconItem {
+            Kirigami.Icon {
                 source: Globals.Icons.vpn
                 enabled: false
                 visible: serverGroupSelector.visible
             }
             
-            ComboBox {
+            PlasmaComponents.ComboBox {
                 id: serverGroupSelector
-                model: connectionItemModel.connectionObject.country ? functionalGroups : allGroups
+                model: connectionItemModel.connectionObject?.country ? functionalGroups : allGroups
                 currentIndex: model.length === 1 ? 0 : -1
                 Layout.fillWidth: true
                 onActivated: connectionObject.group = currentValue

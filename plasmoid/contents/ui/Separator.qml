@@ -1,17 +1,19 @@
 import QtQuick 2.0
-import org.kde.plasma.core 2.0 as PlasmaCore
+import org.kde.ksvg 1.0 as KSvg
 
-PlasmaCore.SvgItem {
+import org.kde.kirigami 2.0 as Kirigami
+
+KSvg.SvgItem {
     id: separatorLine
     anchors {
         horizontalCenter: parent.horizontalCenter
-        topMargin: PlasmaCore.Units.smallSpacing
-        bottomMargin: PlasmaCore.Units.smallSpacing
+        topMargin: Kirigami.Units.smallSpacing
+        bottomMargin: Kirigami.Units.smallSpacing
     }
     elementId: "horizontal-line"
-    width: parent.width - PlasmaCore.Units.gridUnit * 2
+    width: parent.width - Kirigami.Units.gridUnit * 2
     implicitHeight: 2
-    svg: PlasmaCore.Svg {
+    svg: KSvg.Svg {
         imagePath: "widgets/line"
     }
 }

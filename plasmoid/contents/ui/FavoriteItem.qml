@@ -2,8 +2,9 @@ import QtQuick 2.0
 import QtQuick.Layouts 1.0
 import QtQuick.Controls 2.3
 
-import org.kde.plasma.core 2.1 as PlasmaCore
 import org.kde.plasma.components 3.0 as PlasmaComponents3
+
+import org.kde.kirigami 2.3 as Kirigami
 
 PlasmaComponents3.ToolButton {
     property var contextMenu
@@ -18,13 +19,13 @@ PlasmaComponents3.ToolButton {
     }
     
     contentItem: RowLayout {
-        PlasmaCore.IconItem {
+        Kirigami.Icon {
             source: resolveIcon(model.icon)
-            implicitWidth: PlasmaCore.Units.iconSizes.medium
-            implicitHeight: PlasmaCore.Units.iconSizes.medium
+            implicitWidth: Kirigami.Units.iconSizes.medium
+            implicitHeight: Kirigami.Units.iconSizes.medium
             enabled: !busy
 
-            PlasmaCore.IconItem {
+            Kirigami.Icon {
                 visible: !!model.indicator
                 source: resolveIcon(model.indicator)
                 width: parent.width / 2
@@ -49,7 +50,7 @@ PlasmaComponents3.ToolButton {
             }
             PlasmaComponents3.Label {
                 text: model.subtitle || ''
-                font.pointSize: PlasmaCore.Theme.smallestFont.pointSize
+                font.pointSize: Kirigami.Theme.smallFont
             }
         }
     }
@@ -58,11 +59,6 @@ PlasmaComponents3.ToolButton {
         width: parent.width
         height: parent.height
         acceptedButtons: Qt.RightButton
-
-        onPressed: {
-            if (contextMenu) {
-                contextMenu.open(mouse.x, mouse.y)
-            }
-        }
+        onPressed: mouse => contextMenu?.popup(mouse.x, mouse.y)
     }
 }
