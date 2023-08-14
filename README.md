@@ -63,3 +63,8 @@ Say thank you with coffee ☕ if you'd like.
 
 [![liberapay](https://liberapay.com/assets/widgets/donate.svg)](https://liberapay.com/korapp/donate)
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/korapp)
+[<img src="https://img.shields.io/badge/Revolut-white?logo=Revolut&logoColor=black" height="30"/>](https://revolut.me/korapp)
+
+[kdestore]: https://store.kde.org/p/1689651/
+[download]: https://github.com/korapp/plasma-nordvpn/releases
+[nordvpn]: https://nordvpn.com/download/linux
