@@ -18,8 +18,11 @@ PlasmaExtras.ExpandableListItem {
     iconEmblem: model.indicator
     visible: model.visible
     defaultActionButtonAction: model.isConnected ? actionDisconnect : actionConnect
-    customExpandedViewContent: model.isConnected ? currentConnectionDetails : detailsComponent
     contextMenu: model.pinable ? itemContextMenu : null
+    // plasma-frameworks 5.94 - 5.102 loads customExpandedViewContent immediately
+    // start with an empty component to force the expand button to appear and load the right content when expanded
+    customExpandedViewContent: Component { QtObject {} }
+    onItemExpanded: customExpandedViewContent = model.isConnected ? currentConnectionDetails : detailsComponent
 
     PlasmaComponents.ContextMenu {
         id: itemContextMenu
@@ -46,6 +49,7 @@ PlasmaExtras.ExpandableListItem {
                 visible: !!connectionItemModel.connectionObject.country
                 onActivated: connectionObject.city = currentValue
                 Component.onCompleted: {
+                    if (!visible) return
                     nordvpn.getCities(connectionItemModel.connectionObject.country)
                         .then(c => {
                             model = c
