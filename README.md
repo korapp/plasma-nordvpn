@@ -1,6 +1,10 @@
 # NordVPN Plasmoid
 
-Simple GUI for the official [NordVPN linux client](https://nordvpn.com/download/linux/). It allows to quick connect and select servers including cities and special servers. Connections can be saved as favorite to skip looking for frequently used servers.
+[![plasma](https://img.shields.io/static/v1?message=KDE%20Store&color=54a3d8&logo=kde&logoColor=FFFFFF&label=)][kdestore]
+[![downloads](https://img.shields.io/github/downloads/korapp/plasma-nordvpn/total)][releases]
+[![release](https://img.shields.io/github/v/release/korapp/plasma-nordvpn)][releases]
+
+Simple GUI for the official [NordVPN linux client][nordvpn]. It allows to quick connect and select servers including cities and special servers. Connections can be saved as favorite to skip looking for frequently used servers.
 
 ![Plasmoid full view](images/preview.png)
 
@@ -12,7 +16,7 @@ Simple GUI for the official [NordVPN linux client](https://nordvpn.com/download/
 
 ## Requirements
 
-* [NordVPN linux client](https://nordvpn.com/download/linux/)
+* [NordVPN linux client][nordvpn]
 * Qt >= 5.14, KDE Frameworks >= 5.73, KDE Plasma >= 5.19 (Kubuntu 20.10 and newer)
 
 ## Installation
@@ -21,7 +25,7 @@ The preferred and easiest way to install is to use Plasma Discover or KDE Get Ne
 
 ### From file
 
-Download the latest version of plasmoid from [KDE Store](https://store.kde.org/p/1689651/) or [release page](https://github.com/korapp/plasma-nordvpn/releases)
+Download the latest version of plasmoid from [KDE Store][kdestore] or [release page][releases]
 
 #### A) Plasma UI
 
@@ -63,3 +67,8 @@ Say thank you with coffee ☕ if you'd like.
 
 [![liberapay](https://liberapay.com/assets/widgets/donate.svg)](https://liberapay.com/korapp/donate)
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/korapp)
+[<img src="https://img.shields.io/badge/Revolut-white?logo=Revolut&logoColor=black" height="30"/>](https://revolut.me/korapp)
+
+[kdestore]: https://store.kde.org/p/1689651/
+[releases]: https://github.com/korapp/plasma-nordvpn/releases
+[nordvpn]: https://nordvpn.com/download/linux
