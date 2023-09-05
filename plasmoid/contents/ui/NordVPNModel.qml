@@ -68,9 +68,8 @@ QtObject {
     }
 
     function createFavoriteModel(f) {
-        const icon = (f.group && Globals.Icons[f.group]) || (f.country && flags.getFlagName(f.country)) || Globals.Icons.globe
         return createModel({
-            icon,
+            icon: getFavoriteIcon(f),
             indicator: f.group && f.country ? flags.getFlagName(f.country) : '',
             title: f.group || f.city || f.country || i18n("Auto"),
             subtitle: f.group ? f.city || f.country : f.city ? f.country : '',
