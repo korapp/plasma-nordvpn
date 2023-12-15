@@ -1,6 +1,6 @@
-import QtQuick 2.0
+import QtQuick
 
-import org.kde.plasma.plasma5support 2.0 as P5Support
+import org.kde.plasma.plasma5support as P5Support
 
 Item {
     readonly property alias status: p.status

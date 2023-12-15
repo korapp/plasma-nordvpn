@@ -1,4 +1,4 @@
-import QtQuick 2.0
+import QtQuick
 
 import "../code/countries.js" as Countries
 import "../code/globals.js" as Globals

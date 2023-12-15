@@ -1,12 +1,12 @@
-import QtQuick 2.4
-import QtQuick.Layouts 1.1
+import QtQuick
+import QtQuick.Layouts
 
-import org.kde.plasma.plasmoid 2.0
-import org.kde.plasma.core 2.0 as PlasmaCore
-import org.kde.ksvg 1.0 as KSvg
-import org.kde.notification 1.0
+import org.kde.plasma.plasmoid
+import org.kde.plasma.core as PlasmaCore
+import org.kde.ksvg as KSvg
+import org.kde.notification
 
-import org.kde.kirigami 2.0 as Kirigami
+import org.kde.kirigami as Kirigami
 
 import "../code/globals.js" as Globals
 import "../code/countries.js" as Country

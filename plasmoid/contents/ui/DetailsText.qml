@@ -1,8 +1,8 @@
-import QtQuick 2.0
+import QtQuick
 
-import org.kde.plasma.components 3.0 as PlasmaComponents
+import org.kde.plasma.components as PlasmaComponents
 
-import org.kde.kirigami 2.3 as Kirigami
+import org.kde.kirigami as Kirigami
 
 Column {
     property alias model: repeater.model
