@@ -14,7 +14,7 @@ PlasmaExtras.ExpandableListItem {
 
     title: model.title
     subtitle: model.subtitle
-    icon: flags.isFlagString(model.icon) ? flags.getFlagImage(model.icon) : model.icon
+    icon: resolveIcon(model.icon)
     iconEmblem: model.indicator
     visible: model.visible
     defaultActionButtonAction: model.isConnected ? actionDisconnect : actionConnect

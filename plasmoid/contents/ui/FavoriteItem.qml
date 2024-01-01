@@ -19,14 +19,14 @@ PlasmaComponents3.ToolButton {
     
     contentItem: RowLayout {
         PlasmaCore.IconItem {
-            source: flags.isFlagString(model.icon) ? flags.getFlagImage(model.icon) : model.icon
+            source: resolveIcon(model.icon)
             implicitWidth: PlasmaCore.Units.iconSizes.medium
             implicitHeight: PlasmaCore.Units.iconSizes.medium
             enabled: !busy
 
             PlasmaCore.IconItem {
                 visible: !!model.indicator
-                source: model.indicator
+                source: resolveIcon(model.indicator)
                 width: parent.width / 2
                 height: parent.height / 2
                 enabled: parent.enabled

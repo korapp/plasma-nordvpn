@@ -54,7 +54,7 @@ Item {
         favoriteConnections.forEach((f, i) => plasmoid.setAction(
             i,
             Object.values(f).filter(Boolean).join(" > "),
-            (f.group && Globals.Icons[f.group]) || (f.country && flags.getLegacyFlagUrl(f.country)) || Globals.Icons.globe
+            getFavoriteIcon(f, true)
         ))
     }
 
@@ -86,23 +86,19 @@ Item {
         function getLegacyFlagUrl(countryName) {
             return legacyIconsDir + Country.codes[countryName].toLowerCase() + "/flag.png"
         }
-    }
 
-    function skipUrlSchema(urlString) {
-        return /(?:.*:\/\/)?(.*)/.exec(urlString)[1]
-    }
-
-    function getFavoriteIcon(f) {
-        if (f.group) {
-            return Globals.Icons[f.group]
-        } else if (f.country) {
-            return flags.getLegacyFlagUrl(f.country)
+        function skipUrlSchema(urlString) {
+            return /(?:.*:\/\/)?(.*)/.exec(urlString)[1]
         }
-        return Globals.Icons.globe
     }
 
-    Exec {
-        id: cmd
+    function resolveIcon(source) {
+        return flags.isFlagString(source) ? flags.getFlagImage(source) : source
+    }
+
+    function getFavoriteIcon(f, legacyFlag) {
+        const getFlag = legacyFlag ? flags.getLegacyFlagUrl : flags.getFlagName
+        return (f.group && Globals.Icons[f.group]) || (f.country && getFlag(f.country)) || Globals.Icons.globe
     }
 
     PlasmaCore.DataSource {
