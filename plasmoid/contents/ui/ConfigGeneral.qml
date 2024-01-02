@@ -1,7 +1,7 @@
-import QtQuick 2.0
-import QtQuick.Controls 2.0
+import QtQuick
+import QtQuick.Controls
 
-import org.kde.kirigami 2.3 as Kirigami
+import org.kde.kirigami as Kirigami
 
 Kirigami.FormLayout {
     id: generalPage

@@ -1,7 +1,8 @@
-import QtQuick 2.0
+import QtQuick
 
-import org.kde.plasma.core 2.0 as PlasmaCore
-import org.kde.plasma.components 3.0 as PlasmaComponents3
+import org.kde.plasma.components as PlasmaComponents
+
+import org.kde.kirigami as Kirigami
 
 Column {
     property alias model: repeater.model
@@ -18,14 +19,14 @@ Column {
             }
             height: Math.max(detailNameLabel.height, detailValueLabel.height)
 
-            PlasmaComponents3.Label {
+            PlasmaComponents.Label {
                 id: detailNameLabel
 
                 anchors {
                     left: parent.left
-                    leftMargin: repeater.longestString - paintedWidth + Math.round(PlasmaCore.Units.gridUnit / 2)
+                    leftMargin: repeater.longestString - paintedWidth + Math.round(Kirigami.Units.gridUnit / 2)
                 }
-                font.pointSize: PlasmaCore.Theme.smallestFont.pointSize
+                font.pointSize: Kirigami.Theme.smallFont
                 horizontalAlignment: Text.AlignRight
                 text: modelData[0] + ": "
                 opacity: 0.6
@@ -37,16 +38,16 @@ Column {
                 }
             }
 
-            PlasmaComponents3.Label {
+            PlasmaComponents.Label {
                 id: detailValueLabel
 
                 anchors {
                     left: parent.left
                     right: parent.right
-                    leftMargin: repeater.longestString + Math.round(PlasmaCore.Units.gridUnit / 2)
+                    leftMargin: repeater.longestString + Math.round(Kirigami.Units.gridUnit / 2)
                 }
                 elide: Text.ElideRight
-                font.pointSize: PlasmaCore.Theme.smallestFont.pointSize
+                font.pointSize: Kirigami.Theme.smallFont
                 text: modelData[1]
                 textFormat: Text.PlainText
             }

@@ -1,35 +1,49 @@
-import QtQuick 2.4
-import QtQuick.Layouts 1.1
+import QtQuick
+import QtQuick.Layouts
 
-import Qt.labs.platform 1.1
+import org.kde.plasma.plasmoid
+import org.kde.plasma.core as PlasmaCore
+import org.kde.ksvg as KSvg
+import org.kde.notification
 
-import org.kde.plasma.plasmoid 2.0
-import org.kde.plasma.core 2.0 as PlasmaCore
+import org.kde.kirigami as Kirigami
 
 import "../code/globals.js" as Globals
 import "../code/countries.js" as Country
 
-Item {
+PlasmoidItem {
     id: root
-    Plasmoid.compactRepresentation: CompactRepresentation {}
-    Plasmoid.fullRepresentation: FullRepresentation {}
-    Plasmoid.toolTipSubText: getTooltipText()
+    compactRepresentation: CompactRepresentation {}
+    fullRepresentation: FullRepresentation {}
+    toolTipSubText: getTooltipText()
+    switchWidth: Kirigami.Units.gridUnit * 14
+    switchHeight: Kirigami.Units.gridUnit * 14
+
     Plasmoid.status: nordvpn.isServiceRunning && (nordvpn.isConnected || !plasmoid.configuration.hideWhenDisconnected)
         ? PlasmaCore.Types.ActiveStatus
         : PlasmaCore.Types.PassiveStatus
     Plasmoid.icon: Qt.resolvedUrl("../images/nordvpn.svgz")
 
-    Plasmoid.switchWidth: PlasmaCore.Units.gridUnit * 14
-    Plasmoid.switchHeight: PlasmaCore.Units.gridUnit * 14
-
-    readonly property var actionConnect: ["quick_connect", nmI18n("Connect"), Globals.Icons.connect]
-    readonly property var actionDisconnect: ["disconnect", nmI18n("Disconnect"), Globals.Icons.disconnect]
+    readonly property list<QtObject> staticContextualActions: [
+        PlasmaCore.Action {
+            text: nmI18n("Connect")
+            icon.name: Globals.Icons.connect
+            visible: !nordvpn.isConnected
+            onTriggered: nordvpn.connect()
+        },
+        PlasmaCore.Action {
+            text: nmI18n("Disconnect")
+            icon.name: Globals.Icons.disconnect
+            visible: nordvpn.isConnected
+            onTriggered: nordvpn.disconnect()
+        }
+    ]
 
     property var favoriteConnections: []
 
     NordVPN {
         id: nordvpn
-        onError: {
+        onError: (message) => {
             if (plasmoid.configuration.showNotifications) {
                 createNotification(message)
             }
@@ -40,35 +54,21 @@ Item {
         loadFavorites()
     }
 
-    Plasmoid.onContextualActionsAboutToShow: {
-        plasmoid.clearActions()
-
-        if (nordvpn.isConnected) {
-            plasmoid.setAction(...actionDisconnect)
-        } else {
-            plasmoid.setAction(...actionConnect)
-        }
-
-        plasmoid.setActionSeparator("")
-
-        favoriteConnections.forEach((f, i) => plasmoid.setAction(
-            i,
-            Object.values(f).filter(Boolean).join(" > "),
-            getFavoriteIcon(f, true)
-        ))
+    onContextualActionsAboutToShow: {
+        const favActions = favoriteConnections.map(f => createPlasmaAction({
+            text: Object.values(f).filter(Boolean).join(" > "),
+            icon: getFavoriteIcon(f),
+            onTriggered: nordvpn.connect.bind(f)
+        }))
+        Plasmoid.contextualActions = [...staticContextualActions, ...favActions]
     }
 
-    PlasmaCore.Svg {
+    KSvg.Svg {
         id: flags
         imagePath: Qt.resolvedUrl("../images/flags.svgz")
         multipleImages: true
 
         readonly property string flagPrefix: "flag:"
-        readonly property string legacyIconsDir: skipUrlSchema(StandardPaths.locate(
-            StandardPaths.GenericDataLocation,
-            "kf5/locale/countries/",
-            StandardPaths.LocateDirectory
-        ))
 
         function isFlagString(iconString) {
             return iconString && iconString.startsWith(flagPrefix)
@@ -82,57 +82,35 @@ Item {
         function getFlagName(countryName) {
             return flagPrefix + Country.codes[countryName]
         }
-
-        function getLegacyFlagUrl(countryName) {
-            return legacyIconsDir + Country.codes[countryName].toLowerCase() + "/flag.png"
-        }
-
-        function skipUrlSchema(urlString) {
-            return /(?:.*:\/\/)?(.*)/.exec(urlString)[1]
-        }
     }
 
     function resolveIcon(source) {
         return flags.isFlagString(source) ? flags.getFlagImage(source) : source
     }
 
-    function getFavoriteIcon(f, legacyFlag) {
-        const getFlag = legacyFlag ? flags.getLegacyFlagUrl : flags.getFlagName
-        return (f.group && Globals.Icons[f.group]) || (f.country && getFlag(f.country)) || Globals.Icons.globe
+    function getFavoriteIcon(f, flag) {
+        return (f.group && Globals.Icons[f.group])
+            || (flag && f.country && flags.getFlagName(f.country))
+            || Globals.Icons.globe
     }
 
-    PlasmaCore.DataSource {
-        id: notificationSource
-        engine: "notifications"
-        connectedSources: "org.freedesktop.Notifications"
+    Component {
+        id: notificationComponent
+        Notification {
+            componentName: "plasma_workspace"
+            eventId: "notification"
+            title: plasmoid.title
+            iconName: plasmoid.icon
+            autoDelete: true
+        }
     }
 
-    function createNotification(text, { appName = plasmoid.title, appIcon = plasmoid.icon } = {}) {        
-        const service = notificationSource.serviceForSource("notification");
-        const operation = service.operationDescription("createNotification");
-
-        operation.appName = appName
-        operation.appIcon = appIcon
-        operation.body = text
-        operation.expireTimeout = 5000
-
-        service.startOperationCall(operation);
+    function createNotification(text) {        
+        notificationComponent.createObject(root, { text })?.sendEvent()
     }
 
     function getTooltipText() {
         return nordvpn.isConnected ? `${nordvpn.status.Country}, ${nordvpn.status.City}` : nordvpn.status.Status || ''
-    }
-
-    function action_disconnect() {
-        nordvpn.disconnect()
-    }
-
-    function action_quick_connect() {
-        nordvpn.connect()
-    }
-
-    function actionTriggered(action) {
-        nordvpn.connect(favoriteConnections[action])
     }
 
     function readFavorites() {
@@ -160,16 +138,26 @@ Item {
         favoriteConnections = readFavorites()
     }
 
+    Component {
+        id: actionComponent
+        PlasmaCore.Action {}
+    }
+
+    function createPlasmaAction({text, icon, visible = true, onTriggered} = {}) {
+        const action = actionComponent.createObject(root, {
+            text: text,
+            'icon.name': icon
+        })
+        action.onTriggered.connect(onTriggered)
+        return action
+    }
+
     function stringify(object) {
         return JSON.stringify(object, (key, value) => value || undefined)
     }
 
     function nmI18n(...args) {
         return i18nd("plasma_applet_org.kde.plasma.networkmanagement", ...args)
-    }
-
-    function nmI18nc(...args) {
-        return i18ndc("plasma_applet_org.kde.plasma.networkmanagement", ...args)
     }
 
     function kickerI18n(...args) {
