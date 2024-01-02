@@ -1,22 +1,21 @@
-import QtQuick 2.7
-import QtQuick.Layouts 1.0
-import QtQuick.Controls 2.5
+import QtQuick
+import QtQuick.Layouts
+import QtQuick.Controls
 
-import org.kde.plasma.core 2.1 as PlasmaCore
-import org.kde.plasma.components 2.0 as PlasmaComponents // for Highlight, ContextMenu, MenuItem
-import org.kde.plasma.components 3.0 as PlasmaComponents3
-import org.kde.plasma.extras 2.0 as PlasmaExtras
+import org.kde.plasma.components as PlasmaComponents3
+import org.kde.plasma.extras as PlasmaExtras
+import org.kde.kitemmodels as KItemModels
+
+import org.kde.kirigami as Kirigami
 
 import "../code/globals.js" as Globals
 
-PlasmaComponents3.Page {
-    readonly property var appletInterface: plasmoid.self
-    
+PlasmaComponents3.Page {   
     property ListModel favorites: ListModel {}
     property alias servers: nordVpnModel.servers
     property alias allGroups: nordVpnModel.allGroups
     property alias functionalGroups: nordVpnModel.functionalGroups
-    readonly property bool loadModel: plasmoid.expanded && nordvpn.isServiceRunning
+    readonly property bool loadModel: root.expanded && nordvpn.isServiceRunning
 
     NordVPNModel {
         id: nordVpnModel
@@ -75,8 +74,7 @@ PlasmaComponents3.Page {
 
         PlasmaComponents3.ScrollView {
             Layout.fillWidth: true
-            ScrollBar.vertical.policy: ScrollBar.AlwaysOff
-            contentHeight: contentItem.contentItem.childrenRect.height
+            contentHeight: contentItem.contentItem.childrenRect.height || 1 // hack: force render with non-zero height
             visible: favorites.count > 0
             ListView {
                 currentIndex: -1
@@ -84,30 +82,28 @@ PlasmaComponents3.Page {
                 boundsBehavior: Flickable.StopAtBounds
                 model: favorites
                 delegate: FavoriteItem {
-                    contextMenu: PlasmaComponents.ContextMenu {
-                        PlasmaComponents.MenuItem {
+                    contextMenu: PlasmaComponents3.Menu {
+                        PlasmaComponents3.MenuItem {
                             text: kickerI18n("Remove from Favorites")
-                            icon: Globals.Icons.unpin
+                            icon.name: Globals.Icons.unpin
                             onClicked: deleteFavorite(index)
                         }
                     }
                 }
                 add: Transition {
-                    NumberAnimation { property: "opacity"; from: 0.0; to: 1.0; duration: PlasmaCore.Units.longDuration }
-                    NumberAnimation { property: "scale"; from: 0.0; to: 1.0; duration: PlasmaCore.Units.longDuration }
+                    NumberAnimation { property: "opacity"; from: 0.0; to: 1.0; duration: Kirigami.Units.longDuration }
+                    NumberAnimation { property: "scale"; from: 0.0; to: 1.0; duration: Kirigami.Units.longDuration }
                 }
                 remove: Transition {
-                    NumberAnimation { property: "opacity"; from: 1.0; to: 0.0; duration: PlasmaCore.Units.longDuration }
-                    NumberAnimation { property: "scale"; from: 1.0; to: 0.0; duration: PlasmaCore.Units.longDuration }
+                    NumberAnimation { property: "opacity"; from: 1.0; to: 0.0; duration: Kirigami.Units.longDuration }
+                    NumberAnimation { property: "scale"; from: 1.0; to: 0.0; duration: Kirigami.Units.longDuration }
                 }   
             }
         }
-        PlasmaComponents3.TextField {
+        PlasmaExtras.SearchField {
             Layout.fillWidth: true
             id: filter
-            placeholderText: nmI18nc("text field placeholder text", "Search…") // Plasma 5.23 uses ellipsis character
-            clearButtonShown: true
-            focus: plasmoid.expanded
+            focus: root.expanded
             onAccepted: serverList.currentItem.defaultActionButtonAction.trigger()
             Keys.onUpPressed: serverList.decrementCurrentIndex()
             Keys.onDownPressed: serverList.incrementCurrentIndex()
@@ -116,14 +112,13 @@ PlasmaComponents3.Page {
         PlasmaComponents3.ScrollView {
             Layout.fillHeight: true
             Layout.fillWidth: true
-            ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
             
             ListView {
                 id: serverList
                 currentIndex: -1
-                spacing: PlasmaCore.Units.smallSpacing
+                spacing: Kirigami.Units.smallSpacing
                 boundsBehavior: Flickable.StopAtBounds
-                highlight: PlasmaComponents.Highlight {}  
+                highlight: PlasmaExtras.Highlight {}
                 highlightFollowsCurrentItem: true
                 highlightMoveDuration: 0
                 highlightResizeDuration: 0
@@ -134,12 +129,10 @@ PlasmaComponents3.Page {
                 keyNavigationEnabled: true
                 section.property: "isConnected"
                 section.delegate: Separator {}
-                model: PlasmaCore.SortFilterModel {
+                model: KItemModels.KSortFilterProxyModel {
                     sourceModel: servers
                     filterString: filter.text
-                    sortRole: "title"
-                    sortOrder: Qt.DescendingOrder
-                    filterCallback: function(row) {
+                    filterRowCallback: function(row) {
                         const item = sourceModel.get(row)
                         return textMaches(item.title, filter.text) || textMaches(item.subtitle, filter.text)
                     }
@@ -149,7 +142,7 @@ PlasmaComponents3.Page {
                     }
                 }
                 add: Transition {
-                    NumberAnimation { property: "opacity"; from: 0.0; to: 1.0; duration: PlasmaCore.Units.longDuration }
+                    NumberAnimation { property: "opacity"; from: 0.0; to: 1.0; duration: Kirigami.Units.longDuration }
                 }
                 onCountChanged: {
                     // select single result

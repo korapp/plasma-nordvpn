@@ -17,7 +17,7 @@ Simple GUI for the official [NordVPN linux client][nordvpn]. It allows to quick 
 ## Requirements
 
 * [NordVPN linux client][nordvpn]
-* Qt >= 5.14, KDE Frameworks >= 5.73, KDE Plasma >= 5.19 (Kubuntu 20.10 and newer)
+* KDE Plasma >= 6.0
 
 ## Installation
 
@@ -69,6 +69,6 @@ Say thank you with coffee ☕ if you'd like.
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/korapp)
 [<img src="https://img.shields.io/badge/Revolut-white?logo=Revolut&logoColor=black" height="30"/>](https://revolut.me/korapp)
 
-[kdestore]: https://store.kde.org/p/1689651/
+[kdestore]: https://store.kde.org/p/2118492/
 [releases]: https://github.com/korapp/plasma-nordvpn/releases
 [nordvpn]: https://nordvpn.com/download/linux

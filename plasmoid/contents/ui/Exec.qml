@@ -1,15 +1,15 @@
-import QtQuick 2.0
+import QtQuick
 
-import org.kde.plasma.core 2.0 as PlasmaCore
+import org.kde.plasma.plasma5support as P5Support
 
 import "../code/polyfills.js" as Polyfills
 
-PlasmaCore.DataSource {
+P5Support.DataSource {
     engine: "executable"
 
     readonly property var callbacks: ({})
 
-    onNewData: {
+    onNewData: function (sourceName, data) {
         const { stdout } = data
         if (callbacks[sourceName] !== undefined) {
             if (!data["exit code"]) {

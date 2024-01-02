@@ -1,7 +1,9 @@
-import QtQuick 2.0
+import QtQuick
 
-import org.kde.plasma.core 2.0 as PlasmaCore
-import org.kde.plasma.components 3.0 as PlasmaComponents3
+import org.kde.plasma.components as PlasmaComponents3
+import org.kde.ksvg as KSvg
+
+import org.kde.kirigami as Kirigami
 
 import "../code/countries.js" as Countries
 
@@ -10,8 +12,8 @@ MouseArea {
     acceptedButtons: Qt.LeftButton | Qt.MiddleButton
     readonly property int minSize: Math.min(width, height)
     
-    PlasmaCore.SvgItem {
-        svg: PlasmaCore.Svg {
+    KSvg.SvgItem {
+        svg: KSvg.Svg {
             imagePath: plasmoid.icon
         }  
         enabled: nordvpn.isConnected
@@ -21,7 +23,7 @@ MouseArea {
 
         anchors.centerIn: parent
 
-        PlasmaCore.IconItem {
+        Kirigami.Icon {
             visible: plasmoid.configuration.showCountryIndicator && nordvpn.isConnected
             source: visible ? flags.getFlagImage(Countries.codes[nordvpn.status.Country], Qt.size(width, height)) : ''
             enabled: true
@@ -41,7 +43,7 @@ MouseArea {
         }
     }
 
-    onClicked: {
+    onClicked: function (mouse) {
         if (plasmoid.configuration.toggleConnectionOnMiddleButton && mouse.button === Qt.MiddleButton) {
             toggleConnection()
         } else {
@@ -54,6 +56,6 @@ MouseArea {
     }
 
     function toggleExpanded() {
-        plasmoid.expanded = !plasmoid.expanded
+        root.expanded = !root.expanded
     }
 }
