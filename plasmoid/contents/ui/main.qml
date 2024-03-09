@@ -4,7 +4,6 @@ import QtQuick.Layouts
 import org.kde.plasma.plasmoid
 import org.kde.plasma.core as PlasmaCore
 import org.kde.ksvg as KSvg
-import org.kde.notification
 
 import org.kde.kirigami as Kirigami
 
@@ -43,10 +42,23 @@ PlasmoidItem {
 
     NordVPN {
         id: nordvpn
-        onError: (message) => {
-            if (plasmoid.configuration.showNotifications) {
-                createNotification(message)
+    }
+
+    Notifications {
+        id: notifications
+    }
+
+    Connections {
+        target: nordvpn
+        enabled: plasmoid.configuration.showNotifications
+        function onError(message) {
+            if (message === 'You are not logged in.') {
+                return notifications.show(message, [{
+                    label: i18n("Login"),
+                    onActivated: nordvpn.login
+                }])
             }
+            notifications.show(message)
         }
     }
 
@@ -92,21 +104,6 @@ PlasmoidItem {
         return (f.group && Globals.Icons[f.group])
             || (flag && f.country && flags.getFlagName(f.country))
             || Globals.Icons.globe
-    }
-
-    Component {
-        id: notificationComponent
-        Notification {
-            componentName: "plasma_workspace"
-            eventId: "notification"
-            title: plasmoid.title
-            iconName: plasmoid.icon
-            autoDelete: true
-        }
-    }
-
-    function createNotification(text) {        
-        notificationComponent.createObject(root, { text })?.sendEvent()
     }
 
     function getTooltipText() {

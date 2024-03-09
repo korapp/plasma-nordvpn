@@ -16,6 +16,7 @@ Item {
     readonly property var getGroups: p.getGroups
     readonly property var getSpecialGroups: p.getSpecialGroups
     readonly property var getGeoGroups: p.getGeoGroups
+    readonly property var login: p.login
     readonly property bool isBusy: p.isConnecting || p.isOperationInProgress
 
     signal error(string message)
@@ -89,7 +90,13 @@ Item {
                 .exec(`nordvpn ${resource}`)
                 .then(parseStdout)
                 .then(s => parseStdoutValues(s.value))
-        }        
+        }
+
+        function login() {
+            return execSource
+                .exec("nordvpn login --nordaccount")
+                .then(stdout => Qt.openUrlExternally(parseStdoutProperties(parseStdout(stdout).value)["Continue in the browser"]))
+        }
 
         // Format NordVPN names
         function prettyName(name) {
