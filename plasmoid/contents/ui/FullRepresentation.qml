@@ -72,34 +72,13 @@ PlasmaComponents3.Page {
         anchors.fill: parent
         visible: nordvpn.isServiceRunning
 
-        PlasmaComponents3.ScrollView {
+        Loader {
+            active: !!favorites.count
+            visible: active
+            sourceComponent: favoritesComponent
             Layout.fillWidth: true
-            contentHeight: contentItem.contentItem.childrenRect.height || 1 // hack: force render with non-zero height
-            visible: favorites.count > 0
-            ListView {
-                currentIndex: -1
-                orientation: ListView.Horizontal
-                boundsBehavior: Flickable.StopAtBounds
-                model: favorites
-                delegate: FavoriteItem {
-                    contextMenu: PlasmaComponents3.Menu {
-                        PlasmaComponents3.MenuItem {
-                            text: kickerI18n("Remove from Favorites")
-                            icon.name: Globals.Icons.unpin
-                            onClicked: deleteFavorite(index)
-                        }
-                    }
-                }
-                add: Transition {
-                    NumberAnimation { property: "opacity"; from: 0.0; to: 1.0; duration: Kirigami.Units.longDuration }
-                    NumberAnimation { property: "scale"; from: 0.0; to: 1.0; duration: Kirigami.Units.longDuration }
-                }
-                remove: Transition {
-                    NumberAnimation { property: "opacity"; from: 1.0; to: 0.0; duration: Kirigami.Units.longDuration }
-                    NumberAnimation { property: "scale"; from: 1.0; to: 0.0; duration: Kirigami.Units.longDuration }
-                }   
-            }
         }
+
         PlasmaExtras.SearchField {
             Layout.fillWidth: true
             id: filter
@@ -112,7 +91,7 @@ PlasmaComponents3.Page {
         PlasmaComponents3.ScrollView {
             Layout.fillHeight: true
             Layout.fillWidth: true
-            
+
             ListView {
                 id: serverList
                 currentIndex: -1
@@ -147,6 +126,36 @@ PlasmaComponents3.Page {
                 onCountChanged: {
                     // select single result
                     currentIndex = count === 1 ? 0 : -1
+                }
+            }
+        }
+    }
+
+    Component {
+        id: favoritesComponent
+        PlasmaComponents3.ScrollView {
+            contentHeight: contentItem.contentItem.childrenRect.height || 1 // hack: force render with non-zero height
+            ListView {
+                currentIndex: -1
+                orientation: ListView.Horizontal
+                boundsBehavior: Flickable.StopAtBounds
+                model: favorites
+                delegate: FavoriteItem {
+                    contextMenu: PlasmaComponents3.Menu {
+                        PlasmaComponents3.MenuItem {
+                            text: kickerI18n("Remove from Favorites")
+                            icon.name: Globals.Icons.unpin
+                            onClicked: deleteFavorite(index)
+                        }
+                    }
+                }
+                add: Transition {
+                    NumberAnimation { property: "opacity"; from: 0.0; to: 1.0; duration: Kirigami.Units.longDuration }
+                    NumberAnimation { property: "scale"; from: 0.0; to: 1.0; duration: Kirigami.Units.longDuration }
+                }
+                remove: Transition {
+                    NumberAnimation { property: "opacity"; from: 1.0; to: 0.0; duration: Kirigami.Units.longDuration }
+                    NumberAnimation { property: "scale"; from: 1.0; to: 0.0; duration: Kirigami.Units.longDuration }
                 }
             }
         }

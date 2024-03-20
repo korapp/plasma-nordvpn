@@ -15,6 +15,7 @@ MouseArea {
     KSvg.SvgItem {
         svg: KSvg.Svg {
             imagePath: plasmoid.icon
+            colorSet: KSvg.Svg.Complementary
         }  
         enabled: nordvpn.isConnected
         opacity: enabled ? 1 : 0.6
