@@ -98,7 +98,7 @@ Item {
 
         // Format NordVPN id
         function formatArgument(name) {
-            return name ? name.replace(/\s/g, '_') : ''
+            return name ? '"' + name.replace(/\s/g, '_') + '"' : ''
         }
         
         // Log, display and rethrow error
