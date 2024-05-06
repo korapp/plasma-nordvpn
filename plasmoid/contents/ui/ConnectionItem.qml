@@ -49,7 +49,7 @@ PlasmaExtras.ExpandableListItem {
                 visible: !!connectionItemModel.connectionObject.country
                 onActivated: connectionObject.city = currentValue
                 Component.onCompleted: {
-                    if (!visible) return
+                    if (!connectionItemModel.connectionObject.country) return
                     nordvpn.getCities(connectionItemModel.connectionObject.country)
                         .then(c => {
                             model = c
