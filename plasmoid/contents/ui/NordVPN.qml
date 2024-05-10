@@ -93,12 +93,16 @@ Item {
 
         // Format NordVPN names
         function prettyName(name) {
-            return name && name.replace(/_/g, ' ');
+            const minorWords = ['And', 'Of']
+            return name.split('_').map(w => minorWords.includes(w) 
+                ? w.toLowerCase()
+                : w.replace(/[a-z].+[A-Z]/g, x => x.toLowerCase())
+            ).join(' ')
         }
 
         // Format NordVPN id
         function formatArgument(name) {
-            return name ? name.replace(/\s/g, '_') : ''
+            return name ? '"' + name.replace(/\s/g, '_') + '"' : ''
         }
         
         // Log, display and rethrow error
