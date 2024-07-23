@@ -140,7 +140,7 @@ Item {
 
         // Parse string values to list
         function parseStdoutValues(text) {
-            return text.split(', ').map(prettyName);
+            return text.split(/\n/).map(prettyName);
         }
         
         function updateStatus(data) {
