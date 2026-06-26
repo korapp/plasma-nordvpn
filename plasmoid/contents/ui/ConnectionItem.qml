@@ -10,9 +10,9 @@ import org.kde.kirigami as Kirigami
 import "../code/globals.js" as Globals
 
 PlasmaExtras.ExpandableListItem {
+    id: connectionItem
     property var connectionObject: ({})
     readonly property var connectionItemModel: model
-    index: model.index
     title: model.title
     subtitle: model.subtitle
     icon: resolveIcon(model.icon)
@@ -20,6 +20,13 @@ PlasmaExtras.ExpandableListItem {
     visible: model.visible
     defaultActionButtonAction: model.isConnected ? actionDisconnect : actionConnect
     customExpandedViewContent: model.isConnected ? currentConnectionDetails : detailsComponent
+
+    Binding {
+        when: "index" in connectionItem
+        value: model.index
+        property: "index"
+        target: connectionItem
+    }
     
     PlasmaComponents.Menu {
         id: contextMenu
