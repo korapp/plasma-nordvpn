@@ -10,11 +10,9 @@ import org.kde.kirigami as Kirigami
 import "../code/globals.js" as Globals
 
 PlasmaExtras.ExpandableListItem {
-    required index
-    required property var model
     property var connectionObject: ({})
     readonly property var connectionItemModel: model
-
+    index: model.index
     title: model.title
     subtitle: model.subtitle
     icon: resolveIcon(model.icon)
